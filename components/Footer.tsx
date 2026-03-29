@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Footer() {
@@ -79,23 +79,7 @@ export default function Footer() {
             transition={{ delay: 0.3 }}
           >
             <h4 className="text-white font-semibold mb-4">Follow Us</h4>
-            <div className="flex gap-4">
-              {[
-                { Icon: Facebook, href: '#', color: 'hover:text-[var(--color-cyan)]' },
-                { Icon: Instagram, href: '#', color: 'hover:text-[var(--color-magenta)]' },
-                { Icon: Twitter, href: '#', color: 'hover:text-[var(--color-cyan)]' },
-              ].map(({ Icon, href, color }, index) => (
-                <motion.a
-                  key={index}
-                  href={href}
-                  className={`text-gray-400 ${color} transition-colors`}
-                  whileHover={{ scale: 1.2 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Icon className="w-6 h-6" />
-                </motion.a>
-              ))}
-            </div>
+            <p className="text-gray-400">Connect with us on social media</p>
           </motion.div>
         </div>
 
