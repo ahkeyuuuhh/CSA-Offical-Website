@@ -1,4 +1,4 @@
-# CSA Print & Design - Marketing Website
+# CSA Print & Design - Official Marketing Website
 
 A modern, animated marketing website for CSA Print and Design, built with Next.js, Tailwind CSS, and Framer Motion.
 
