@@ -5,8 +5,10 @@ import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
 import ProfileCard from '@/components/ProfileCard';
 import { Award, Users, Zap, Target } from 'lucide-react';
+import { usePageView } from '@/hooks/usePageView';
 
 export default function About() {
+  usePageView('about');
   const team = [
     {
       name: 'Aki Zita',

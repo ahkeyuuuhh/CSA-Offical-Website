@@ -11,8 +11,7 @@ import {
   Calendar,
   Filter,
   Search,
-  X,
-  ChevronLeft
+  X
 } from 'lucide-react';
 import { isAdmin, getContacts, updateContactStatus, type Contact } from '@/lib/supabase/admin';
 
@@ -30,16 +29,16 @@ export default function ContactsManagement() {
   useEffect(() => {
     async function checkAdminStatus() {
       if (!loading && !user) {
-        router.push('/login');
+        router.push('/admin/login');
         return;
       }
 
       if (user) {
-        const adminStatus = await isAdmin(user.id);
+        const adminStatus = await isAdmin(user.email);
         setIsAdminUser(adminStatus);
         
         if (!adminStatus) {
-          router.push('/');
+          router.push('/admin/login?error=unauthorized');
           return;
         }
 
@@ -117,24 +116,12 @@ export default function ContactsManagement() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      <div className="relative z-10 pt-24 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 pt-8 pb-12">
+        <div className="max-w-7xl mx-auto px-8 py-8">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <motion.a
-                href="/admin"
-                className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <ChevronLeft className="w-5 h-5 text-white" />
-              </motion.a>
-              <div>
-                <h1 className="text-4xl font-bold text-white">Contacts</h1>
-                <p className="text-gray-400">{filteredContacts.length} total contacts</p>
-              </div>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-white mb-2">Contacts</h1>
+            <p className="text-gray-400">{filteredContacts.length} total contacts</p>
           </div>
 
           {/* Filters */}

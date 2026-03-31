@@ -8,12 +8,7 @@ import DarkVeil from '@/components/DarkVeil';
 import { 
   Mail, 
   TrendingUp, 
-  Users, 
-  CheckCircle, 
-  Clock, 
-  Archive,
-  AlertCircle,
-  BarChart3
+  Users
 } from 'lucide-react';
 import { isAdmin, getDashboardStats, getContacts, type Contact } from '@/lib/supabase/admin';
 
@@ -24,24 +19,24 @@ export default function AdminDashboard() {
   const [checkingAdmin, setCheckingAdmin] = useState(true);
   const [stats, setStats] = useState({
     totalContacts: 0,
-    newContacts: 0,
-    statusCounts: { new: 0, in_progress: 0, completed: 0, archived: 0 },
+    contactsToday: 0,
+    websiteVisits: 0,
   });
   const [recentContacts, setRecentContacts] = useState<Contact[]>([]);
 
   useEffect(() => {
     async function checkAdminStatus() {
       if (!loading && !user) {
-        router.push('/login');
+        router.push('/admin/login');
         return;
       }
 
       if (user) {
-        const adminStatus = await isAdmin(user.id);
+        const adminStatus = await isAdmin(user.email);
         setIsAdminUser(adminStatus);
         
         if (!adminStatus) {
-          router.push('/');
+          router.push('/admin/login?error=unauthorized');
           return;
         }
 
@@ -50,7 +45,7 @@ export default function AdminDashboard() {
         setStats(dashboardStats);
 
         const contacts = await getContacts();
-        setRecentContacts(contacts.slice(0, 5));
+        setRecentContacts(contacts.slice(0, 10));
       }
       
       setCheckingAdmin(false);
@@ -80,23 +75,16 @@ export default function AdminDashboard() {
       bgColor: 'bg-blue-500/20',
     },
     {
-      title: 'New This Week',
-      value: stats.newContacts,
+      title: 'Contacts Today',
+      value: stats.contactsToday,
       icon: TrendingUp,
       color: 'from-green-500 to-emerald-500',
       bgColor: 'bg-green-500/20',
     },
     {
-      title: 'In Progress',
-      value: stats.statusCounts.in_progress,
-      icon: Clock,
-      color: 'from-yellow-500 to-orange-500',
-      bgColor: 'bg-yellow-500/20',
-    },
-    {
-      title: 'Completed',
-      value: stats.statusCounts.completed,
-      icon: CheckCircle,
+      title: 'Website Visits',
+      value: stats.websiteVisits,
+      icon: Users,
       color: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-500/20',
     },
@@ -117,8 +105,8 @@ export default function AdminDashboard() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      <div className="relative z-10 pt-24 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative z-10 pt-8 pb-12">
+        <div className="max-w-7xl mx-auto px-8 py-8">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -130,7 +118,7 @@ export default function AdminDashboard() {
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
             {statCards.map((stat, index) => (
               <motion.div
                 key={stat.title}
@@ -151,48 +139,6 @@ export default function AdminDashboard() {
               </motion.div>
             ))}
           </div>
-
-          {/* Quick Actions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12"
-          >
-            <motion.a
-              href="/admin/contacts"
-              className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-purple-500 transition-all group"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Manage Contacts</h3>
-                  <p className="text-gray-400">View and manage all contact submissions</p>
-                </div>
-              </div>
-            </motion.a>
-
-            <motion.a
-              href="/admin/analytics"
-              className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-purple-500 transition-all group"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <BarChart3 className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-1">Analytics</h3>
-                  <p className="text-gray-400">View detailed analytics and insights</p>
-                </div>
-              </div>
-            </motion.a>
-          </motion.div>
 
           {/* Recent Contacts */}
           <motion.div

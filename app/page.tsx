@@ -12,8 +12,10 @@ import FadeIn from '@/components/animations/FadeIn';
 import SlideIn from '@/components/animations/SlideIn';
 import { motion } from 'framer-motion';
 import { Check, Zap, Award } from 'lucide-react';
+import { usePageView } from '@/hooks/usePageView';
 
 export default function Home() {
+  usePageView('home');
   const masonryItems = [
     {
       id: '1',

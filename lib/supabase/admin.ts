@@ -21,16 +21,15 @@ export interface AnalyticsEvent {
   created_at: string;
 }
 
-// Check if user is admin
-export async function isAdmin(userId: string): Promise<boolean> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('admin_users')
-    .select('id')
-    .eq('user_id', userId)
-    .single();
+// List of admin emails
+const ADMIN_EMAILS = [
+  'csaprintanddesign@gmail.com'
+];
 
-  return !error && !!data;
+// Check if user is admin by email
+export async function isAdmin(userEmail?: string | null): Promise<boolean> {
+  if (!userEmail) return false;
+  return ADMIN_EMAILS.includes(userEmail.toLowerCase());
 }
 
 // Get all contacts
@@ -126,33 +125,23 @@ export async function getDashboardStats() {
     .from('contacts')
     .select('*', { count: 'exact', head: true });
 
-  // Get new contacts (last 7 days)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const { count: newContacts } = await supabase
+  // Get contacts today
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const { count: contactsToday } = await supabase
     .from('contacts')
     .select('*', { count: 'exact', head: true })
-    .gte('created_at', sevenDaysAgo.toISOString());
+    .gte('created_at', today.toISOString());
 
-  // Get contacts by status
-  const { data: statusData } = await supabase
-    .from('contacts')
-    .select('status');
-
-  const statusCounts = {
-    new: 0,
-    in_progress: 0,
-    completed: 0,
-    archived: 0,
-  };
-
-  statusData?.forEach((contact) => {
-    statusCounts[contact.status as keyof typeof statusCounts]++;
-  });
+  // Get website visits (from analytics_events)
+  const { count: websiteVisits } = await supabase
+    .from('analytics_events')
+    .select('*', { count: 'exact', head: true })
+    .eq('event_type', 'page_view');
 
   return {
     totalContacts: totalContacts || 0,
-    newContacts: newContacts || 0,
-    statusCounts,
+    contactsToday: contactsToday || 0,
+    websiteVisits: websiteVisits || 0,
   };
 }

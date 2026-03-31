@@ -6,8 +6,10 @@ import Image from 'next/image';
 import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
 import { X } from 'lucide-react';
+import { usePageView } from '@/hooks/usePageView';
 
 export default function Products() {
+  usePageView('products');
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 

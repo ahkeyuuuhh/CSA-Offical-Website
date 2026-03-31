@@ -7,8 +7,10 @@ import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
 import ShapeGrid from '@/components/ShapeGrid';
 import { X } from 'lucide-react';
+import { usePageView } from '@/hooks/usePageView';
 
 export default function Samples() {
+  usePageView('portfolio');
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   const samples = [

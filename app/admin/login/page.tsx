@@ -4,41 +4,49 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { isAdmin } from '@/lib/supabase/admin';
 import DarkVeil from '@/components/DarkVeil';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { Shield, AlertCircle } from 'lucide-react';
 
-export default function Login() {
+export default function AdminLogin() {
   const { user, loading, signInWithGoogle } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      router.push('/contact');
+    async function checkAdmin() {
+      if (user) {
+        setChecking(true);
+        const adminStatus = await isAdmin(user.email);
+        if (adminStatus) {
+          router.push('/admin');
+        } else {
+          setError('Access denied. This account is not authorized for admin access.');
+          setChecking(false);
+        }
+      }
     }
-  }, [user, router]);
+    
+    if (!loading) {
+      checkAdmin();
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam) {
-      switch (errorParam) {
-        case 'session_failed':
-          setError('Failed to create session. Please try again.');
-          break;
-        case 'auth_failed':
-          setError('Authentication failed. Please try again.');
-          break;
-        case 'unexpected':
-          setError('An unexpected error occurred. Please try again.');
-          break;
-        default:
-          setError('An error occurred. Please try again.');
-      }
+      setError('Authentication failed. Please try again.');
     }
   }, [searchParams]);
 
-  if (loading) {
+  const handleAdminSignIn = async () => {
+    setError(null);
+    await signInWithGoogle(`${window.location.origin}/admin`);
+  };
+
+  if (loading || checking) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
@@ -51,7 +59,7 @@ export default function Login() {
       {/* DarkVeil Background */}
       <div className="absolute inset-0 z-0">
         <DarkVeil
-          hueShift={300}
+          hueShift={260}
           noiseIntensity={0.06}
           scanlineIntensity={0}
           speed={0.25}
@@ -69,12 +77,15 @@ export default function Login() {
         >
           <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
             <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-              <LogIn className="w-10 h-10 text-white" />
+              <Shield className="w-10 h-10 text-white" />
             </div>
 
-            <h1 className="text-3xl font-bold text-white mb-3">Welcome Back</h1>
-            <p className="text-gray-300 mb-8">
-              Sign in to send us a message and get started with your project
+            <h1 className="text-3xl font-bold text-white mb-3">Admin Access</h1>
+            <p className="text-gray-300 mb-2">
+              Restricted area for authorized administrators only
+            </p>
+            <p className="text-gray-400 text-sm mb-8">
+              Only CSA Print & Design admin accounts can access this area
             </p>
 
             {error && (
@@ -84,13 +95,13 @@ export default function Login() {
                 className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg backdrop-blur-sm flex items-start gap-3"
               >
                 <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-red-300 text-sm">{error}</p>
+                <p className="text-red-300 text-sm text-left">{error}</p>
               </motion.div>
             )}
 
             <motion.button
-              onClick={signInWithGoogle}
-              className="w-full px-8 py-4 bg-white text-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-lg"
+              onClick={handleAdminSignIn}
+              className="w-full px-8 py-4 bg-white text-gray-900 rounded-full font-semibold hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-lg mb-6"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -112,11 +123,24 @@ export default function Login() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              Continue with Google
+              Sign in with Google (Admin)
             </motion.button>
 
-            <p className="text-gray-400 text-sm mt-6">
-              By signing in, you agree to our Terms of Service and Privacy Policy
+            <div className="pt-6 border-t border-white/10">
+              <p className="text-gray-400 text-sm mb-3">Not an admin?</p>
+              <motion.a
+                href="/"
+                className="text-purple-400 hover:text-purple-300 font-medium text-sm"
+                whileHover={{ scale: 1.05 }}
+              >
+                Go to Main Website →
+              </motion.a>
+            </div>
+          </div>
+
+          <div className="mt-6 text-center">
+            <p className="text-gray-500 text-xs">
+              This is a secure area. All access attempts are logged.
             </p>
           </div>
         </motion.div>

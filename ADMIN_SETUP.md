@@ -4,72 +4,60 @@
 
 The admin dashboard allows authorized users to:
 - View all contact form submissions
-- Track analytics and statistics
+- Track analytics and statistics (Total Contacts, Contacts Today, Website Visits)
 - Manage contact status (new, in progress, completed, archived)
 - Search and filter contacts
 - View detailed contact information
 
+## Admin Access
+
+### Email-Based Admin Access
+
+Admin access is controlled by email address. Only the following email can access the admin panel:
+- `csaprintanddesign@gmail.com`
+
+No database setup is required for admin users - access is granted automatically based on email.
+
+### Separate Admin Login
+
+- **User Login**: `/login` - For regular users to access the contact form
+- **Admin Login**: `/admin/login` - Dedicated login page for administrators
+
+After logging in:
+- Regular users are redirected to `/contact`
+- Admin users are redirected to `/admin` dashboard
+
 ## Database Setup
 
-### Step 1: Run the SQL Schema
+### Run the SQL Schema Files
 
 1. Go to your Supabase project dashboard
 2. Navigate to **SQL Editor**
-3. Open the file `supabase/schema.sql` from this project
-4. Copy all the SQL code
-5. Paste it into the Supabase SQL Editor
-6. Click **Run** to execute the schema
+3. Run each SQL file in order:
+   - `supabase/01-create-tables.sql` - Creates tables
+   - `supabase/02-enable-rls.sql` - Enables Row Level Security
+   - `supabase/03-create-policies.sql` - Creates security policies
+   - `supabase/04-create-indexes.sql` - Creates performance indexes
 
 This will create:
 - `contacts` table - stores form submissions
-- `admin_users` table - tracks admin access
-- `analytics_events` table - tracks user events
+- `admin_users` table - tracks admin access (not used with email-based auth)
+- `analytics_events` table - tracks page views and user events
 - Row Level Security policies
 - Indexes for performance
-
-### Step 2: Add Admin Users
-
-After running the schema, you need to manually add admin users to the `admin_users` table.
-
-1. In Supabase, go to **Authentication** → **Users**
-2. Find the user you want to make an admin
-3. Copy their **User ID** (UUID)
-4. Go to **Table Editor** → **admin_users**
-5. Click **Insert** → **Insert row**
-6. Fill in:
-   - `user_id`: Paste the UUID you copied
-   - `email`: The user's email address
-7. Click **Save**
-
-## Accessing the Admin Dashboard
-
-### Admin Routes
-
-- `/admin` - Main dashboard with stats and overview
-- `/admin/contacts` - Manage all contact submissions
-- `/admin/analytics` - View analytics (coming soon)
-
-### Access Control
-
-- Only users listed in the `admin_users` table can access admin pages
-- Non-admin users are automatically redirected to the home page
-- Users must be logged in with Google OAuth
 
 ## Features
 
 ### Dashboard (`/admin`)
 
 - **Statistics Cards**:
-  - Total Contacts
-  - New This Week
-  - In Progress
-  - Completed
+  - Total Contacts - Total number of contact submissions
+  - Contacts Today - Number of contacts received today
+  - Website Visits - Total page views tracked across the site
 
-- **Quick Actions**:
-  - Manage Contacts
-  - View Analytics
+- **Recent Contacts**: Shows the 10 most recent submissions with status badges
 
-- **Recent Contacts**: Shows the 5 most recent submissions
+- **Quick Navigation**: Click "View All Contacts" to go to the contacts management page
 
 ### Contacts Management (`/admin/contacts`)
 
@@ -118,12 +106,12 @@ The admin interface uses the same design system as the main website:
 
 ## Troubleshooting
 
-### "Access Denied" or Redirected to Home
+### "Access Denied" or Redirected to Login
 
-**Solution**: Make sure your user ID is in the `admin_users` table:
-1. Check your user ID in Supabase Authentication
-2. Verify it exists in the `admin_users` table
-3. Make sure the email matches
+**Solution**: Make sure you're logging in with the admin email:
+1. Go to `/admin/login`
+2. Sign in with Google using `csaprintanddesign@gmail.com`
+3. You should be redirected to the admin dashboard
 
 ### Contacts Not Showing Up
 
@@ -136,27 +124,47 @@ The admin interface uses the same design system as the main website:
 ### "Permission Denied" Errors
 
 **Solution**: RLS policies might not be set up:
-1. Re-run the schema.sql file
+1. Re-run the SQL files in order (01-04)
 2. Make sure all policies were created
 3. Check that your user is authenticated
 
+### Website Visits Showing 0
+
+**Solution**: Page view tracking needs time to accumulate:
+1. Visit different pages on the site (home, products, portfolio, about, contact)
+2. Wait a few seconds for tracking to complete
+3. Refresh the admin dashboard
+4. The count should increase
+
 ## Adding More Admins
 
-To add more admin users:
+To add more admin emails, edit the file `lib/supabase/admin.ts`:
 
-```sql
-INSERT INTO admin_users (user_id, email)
-VALUES ('user-uuid-here', 'admin@example.com');
+```typescript
+const ADMIN_EMAILS = [
+  'csaprintanddesign@gmail.com',
+  'another-admin@example.com'  // Add more emails here
+];
 ```
-
-Or use the Supabase Table Editor as described in Step 2 above.
 
 ## Security Notes
 
-- Admin access is controlled by the `admin_users` table
-- Row Level Security ensures only admins can view/edit contacts
-- Regular users can only insert their own contacts
+- Admin access is controlled by email address in `lib/supabase/admin.ts`
+- Row Level Security ensures only authenticated users can insert their own contacts
+- Admin users can view and manage all contacts
 - All database operations are protected by RLS policies
+- User navigation and footer are hidden from admin pages
+
+## Page View Tracking
+
+The website automatically tracks page views for analytics:
+- Home page (`/`)
+- Products page (`/products`)
+- Portfolio page (`/samples`)
+- About page (`/about`)
+- Contact page (`/contact`)
+
+Page views are stored in the `analytics_events` table and displayed on the admin dashboard.
 
 ## Next Steps (Optional Enhancements)
 
@@ -166,3 +174,4 @@ Or use the Supabase Table Editor as described in Step 2 above.
 - Create custom analytics dashboards
 - Add user activity logs
 - Implement contact assignment to team members
+- Add product and portfolio management functionality

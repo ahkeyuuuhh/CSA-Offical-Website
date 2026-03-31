@@ -1,3 +1,5 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -5,6 +7,7 @@ import PillNav from "@/components/PillNav";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,23 +19,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "CSA Print & Design | Professional Printing Services",
-  description: "Bringing your creative vision to life with professional printing and design services. Quality prints, creative designs, exceptional service.",
-};
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAdminRoute = pathname?.startsWith('/admin');
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-white text-gray-900">
-        <AuthProvider>
+    <body className="min-h-full flex flex-col bg-white text-gray-900">
+      <AuthProvider>
+        {!isAdminRoute && (
           <PillNav
             logo="/light-logo.png"
             logoAlt="CSA Print & Design"
@@ -49,12 +43,27 @@ export default function RootLayout({
             pillTextColor="#0a0a0a"
             initialLoadAnimation={true}
           />
-          <PageTransition>
-            <main className="flex-1">{children}</main>
-          </PageTransition>
-          <Footer />
-        </AuthProvider>
-      </body>
+        )}
+        <PageTransition>
+          <main className="flex-1">{children}</main>
+        </PageTransition>
+        {!isAdminRoute && <Footer />}
+      </AuthProvider>
+    </body>
+  );
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <LayoutContent>{children}</LayoutContent>
     </html>
   );
 }
