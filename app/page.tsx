@@ -3,13 +3,10 @@
 import Hero from '@/components/Hero';
 import SectionTitle from '@/components/SectionTitle';
 import CircularGallery from '@/components/CircularGallery';
-import SilkBackground from '@/components/SilkBackground';
 import Masonry from '@/components/Masonry';
-import ProfileCard from '@/components/ProfileCard';
 import Aurora from '@/components/Aurora';
 import SpotlightCard from '@/components/SpotlightCard';
 import ShapeGrid from '@/components/ShapeGrid';
-import DotGrid from '@/components/DotGrid';
 import DarkVeil from '@/components/DarkVeil';
 import FadeIn from '@/components/animations/FadeIn';
 import SlideIn from '@/components/animations/SlideIn';
@@ -202,80 +199,6 @@ export default function Home() {
                 colorShiftOnHover={false}
               />
             </SlideIn>
-          </div>
-        </div>
-      </section>
-
-      {/* Team Section */}
-      <section className="relative py-24 bg-gray-950 overflow-hidden">
-        {/* DotGrid Background */}
-        <div className="absolute inset-0">
-          <DotGrid
-            dotSize={5}
-            gap={15}
-            baseColor="#271E37"
-            activeColor="#5227FF"
-            proximity={120}
-            shockRadius={250}
-            shockStrength={5}
-            resistance={750}
-            returnDuration={1.5}
-          />
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn>
-            <SectionTitle
-              title="Meet Our Team"
-              subtitle="The creative minds behind your success"
-            />
-          </FadeIn>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-16 justify-items-center">
-            <ProfileCard
-              avatarUrl="/team/aki.png"
-              miniAvatarUrl="/team/aki.png"
-              name="Aki Zita"
-              title="Editor / Developer"
-              handle="zitacristel"
-              status="Available"
-              contactText="Email"
-              showUserInfo={true}
-              enableTilt={true}
-              behindGlowEnabled={true}
-              behindGlowColor="rgba(125, 190, 255, 0.67)"
-              innerGradient="linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)"
-              onContactClick={() => window.location.href = 'mailto:zitacristel@gmail.com'}
-            />
-            <ProfileCard
-              avatarUrl="/team/stacy.png"
-              miniAvatarUrl="/team/stacy.png"
-              name="Stacy Lugares"
-              title="Business Owner"
-              handle="cithruscaleb20"
-              status="Available"
-              contactText="Email"
-              showUserInfo={true}
-              enableTilt={true}
-              behindGlowEnabled={true}
-              behindGlowColor="rgba(233, 30, 99, 0.67)"
-              innerGradient="linear-gradient(145deg,#6e4960 0%,#FF71C444 100%)"
-              onContactClick={() => window.location.href = 'mailto:cithruscaleb20@gmail.com'}
-            />
-            <ProfileCard
-              avatarUrl="/team/chea.png"
-              miniAvatarUrl="/team/chea.png"
-              name="Cheannaly Dearing"
-              title="Social Media Manager"
-              handle="cheannalyjoyeusantos"
-              status="Available"
-              contactText="Email"
-              showUserInfo={true}
-              enableTilt={true}
-              behindGlowEnabled={true}
-              behindGlowColor="rgba(82, 39, 255, 0.67)"
-              innerGradient="linear-gradient(145deg,#4e3c6e 0%,#9D71FF44 100%)"
-              onContactClick={() => window.location.href = 'mailto:cheannalyjoyeusantos@gmail.com'}
-            />
           </div>
         </div>
       </section>
