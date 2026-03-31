@@ -31,10 +31,14 @@ export default function Contact() {
     }
   }, [user, loading, router]);
 
-  // Auto-fill email when user is loaded
+  // Auto-fill email and name when user is loaded
   useEffect(() => {
-    if (user?.email) {
-      setFormData(prev => ({ ...prev, email: user.email || '' }));
+    if (user) {
+      setFormData(prev => ({ 
+        ...prev, 
+        email: user.email || '',
+        name: user.user_metadata?.full_name || ''
+      }));
     }
   }, [user]);
 
@@ -42,12 +46,19 @@ export default function Contact() {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const { submitContact } = await import('@/lib/supabase/admin');
+      await submitContact({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        service: formData.service,
+        message: formData.message,
+      });
+      
       setSubmitStatus('success');
       setFormData({ 
-        name: '', 
+        name: user?.user_metadata?.full_name || '', 
         email: user?.email || '', 
         phone: '', 
         service: '', 
@@ -55,7 +66,13 @@ export default function Contact() {
       });
       
       setTimeout(() => setSubmitStatus('idle'), 5000);
-    }, 1500);
+    } catch (error) {
+      console.error('Error submitting contact:', error);
+      setSubmitStatus('error');
+      setTimeout(() => setSubmitStatus('idle'), 5000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -80,6 +97,16 @@ export default function Contact() {
       title: 'Email',
       details: 'info@csaprint.com',
       link: 'mailto:info@csaprint.com',
+    },
+    {
+      Icon: () => (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+      ),
+      title: 'Facebook',
+      details: 'CSA Prints and Design',
+      link: 'https://facebook.com/csaprintsanddesign',
     },
     {
       Icon: Clock,
@@ -176,6 +203,18 @@ export default function Contact() {
                 </motion.div>
               )}
 
+              {submitStatus === 'error' && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg backdrop-blur-sm"
+                >
+                  <p className="text-red-300">
+                    Failed to submit. Please try again.
+                  </p>
+                </motion.div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-white font-medium mb-2">
@@ -188,14 +227,15 @@ export default function Contact() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-colors"
+                    disabled
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 transition-colors opacity-70 cursor-not-allowed"
                     placeholder="Your name"
                   />
                 </div>
 
                 <div>
                   <label htmlFor="email" className="block text-white font-medium mb-2">
-                    Email * (Auto-filled from your account)
+                    Email *
                   </label>
                   <input
                     type="email"

@@ -1,0 +1,4 @@
+-- Step 2: Enable Row Level Security
+ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
