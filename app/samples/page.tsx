@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import SectionTitle from '@/components/SectionTitle';
-import Footer from '@/components/Footer';
 import { X } from 'lucide-react';
 
 export default function Samples() {
@@ -12,62 +12,56 @@ export default function Samples() {
   const samples = [
     {
       id: 1,
-      title: 'Business Card Design',
-      category: 'Business Cards',
-      color: 'from-blue-500 to-purple-500',
+      title: 'Invitation Cards',
+      category: 'Print Materials',
+      image: '/assets/samples-asset/Invitation-cards-sample.jpg',
     },
     {
       id: 2,
-      title: 'Restaurant Menu',
-      category: 'Brochures',
-      color: 'from-red-500 to-orange-500',
+      title: 'Magnetic Bookmarks',
+      category: 'Custom Items',
+      image: '/assets/samples-asset/magnetic-bookmarks-sample.jpg',
     },
     {
       id: 3,
-      title: 'Event Banner',
-      category: 'Banners',
-      color: 'from-green-500 to-teal-500',
+      title: 'Magnetic Bookmarks Set',
+      category: 'Custom Items',
+      image: '/assets/samples-asset/magnetic-bookmarks-sample2.jpg',
     },
     {
       id: 4,
-      title: 'Product Flyer',
-      category: 'Flyers',
-      color: 'from-yellow-500 to-red-500',
+      title: 'Photocards',
+      category: 'Print Materials',
+      image: '/assets/samples-asset/photocards-sample.jpg',
     },
     {
       id: 5,
-      title: 'Corporate Brochure',
-      category: 'Brochures',
-      color: 'from-indigo-500 to-blue-500',
+      title: 'Ref Magnets',
+      category: 'Specialty',
+      image: '/assets/samples-asset/ref-magnets-sample.jpg',
     },
     {
       id: 6,
-      title: 'Promotional Poster',
-      category: 'Posters',
-      color: 'from-pink-500 to-purple-500',
+      title: 'Ref Magnets Collection',
+      category: 'Specialty',
+      image: '/assets/samples-asset/ref-magnets-sample2.jpg',
     },
     {
       id: 7,
-      title: 'Brand Identity',
-      category: 'Design',
-      color: 'from-cyan-500 to-blue-500',
+      title: 'Custom Stickers',
+      category: 'Custom Items',
+      image: '/assets/samples-asset/stickers-sample2.jpg',
     },
     {
       id: 8,
-      title: 'Custom Packaging',
-      category: 'Packaging',
-      color: 'from-orange-500 to-red-500',
-    },
-    {
-      id: 9,
-      title: 'T-Shirt Design',
-      category: 'Apparel',
-      color: 'from-purple-500 to-pink-500',
+      title: 'Sticker Designs',
+      category: 'Custom Items',
+      image: '/assets/samples-asset/stickers-sample3.jpg',
     },
   ];
 
   return (
-    <div className="min-h-screen bg-black pt-24">
+    <div className="min-h-screen bg-white pt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <SectionTitle
           title="Our Work"
@@ -83,24 +77,28 @@ export default function Samples() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.02 }}
               onClick={() => setSelectedImage(sample.id)}
-              className="relative aspect-square rounded-lg overflow-hidden cursor-pointer group"
+              className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group shadow-md hover:shadow-xl transition-all"
             >
-              {/* Placeholder gradient background */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${sample.color}`} />
+              <Image
+                src={sample.image}
+                alt={sample.title}
+                fill
+                className="object-cover"
+              />
               
               {/* Overlay */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <div className="text-center p-4">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-6">
+                <div className="text-center">
                   <h3 className="text-xl font-bold text-white mb-2">{sample.title}</h3>
                   <p className="text-[var(--color-cyan)]">{sample.category}</p>
                 </div>
               </div>
 
               {/* Category Badge */}
-              <div className="absolute top-4 left-4 px-3 py-1 bg-black/80 backdrop-blur-sm rounded-full">
-                <span className="text-sm text-white">{sample.category}</span>
+              <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full">
+                <span className="text-sm text-gray-900 font-medium">{sample.category}</span>
               </div>
             </motion.div>
           ))}
@@ -130,23 +128,25 @@ export default function Samples() {
                 animate={{ scale: 1 }}
                 exit={{ scale: 0.8 }}
                 onClick={(e) => e.stopPropagation()}
-                className="max-w-4xl w-full aspect-square rounded-lg overflow-hidden"
+                className="max-w-4xl w-full aspect-square rounded-lg overflow-hidden relative"
               >
                 {samples.find((s) => s.id === selectedImage) && (
-                  <div
-                    className={`w-full h-full bg-gradient-to-br ${
-                      samples.find((s) => s.id === selectedImage)?.color
-                    } flex items-center justify-center`}
-                  >
-                    <div className="text-center p-8">
-                      <h2 className="text-4xl font-bold text-white mb-4">
+                  <>
+                    <Image
+                      src={samples.find((s) => s.id === selectedImage)!.image}
+                      alt={samples.find((s) => s.id === selectedImage)!.title}
+                      fill
+                      className="object-contain"
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-8">
+                      <h2 className="text-3xl font-bold text-white mb-2">
                         {samples.find((s) => s.id === selectedImage)?.title}
                       </h2>
-                      <p className="text-2xl text-white/80">
+                      <p className="text-xl text-[var(--color-cyan)]">
                         {samples.find((s) => s.id === selectedImage)?.category}
                       </p>
                     </div>
-                  </div>
+                  </>
                 )}
               </motion.div>
             </motion.div>
@@ -160,10 +160,10 @@ export default function Samples() {
           viewport={{ once: true }}
           className="mt-20 text-center"
         >
-          <h3 className="text-3xl font-bold text-white mb-4">
+          <h3 className="text-3xl font-bold text-gray-900 mb-4">
             Like What You See?
           </h3>
-          <p className="text-xl text-gray-400 mb-8">
+          <p className="text-xl text-gray-600 mb-8">
             Let's create something amazing together
           </p>
           <motion.a
@@ -176,7 +176,6 @@ export default function Samples() {
           </motion.a>
         </motion.div>
       </div>
-      <Footer />
     </div>
   );
 }

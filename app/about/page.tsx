@@ -57,7 +57,7 @@ export default function About() {
   ];
 
   return (
-    <div className="min-h-screen bg-black pt-24">
+    <div className="min-h-screen bg-white pt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <motion.div
@@ -65,8 +65,8 @@ export default function About() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-20"
         >
-          <h1 className="text-5xl font-bold text-white mb-6">About CSA Print & Design</h1>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">About CSA Print & Design</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             For over a decade, we've been helping businesses bring their creative visions to life
             through exceptional printing and design services.
           </p>
@@ -80,8 +80,8 @@ export default function About() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl font-bold text-white mb-6">Our Story</h2>
-              <div className="space-y-4 text-gray-400">
+              <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
+              <div className="space-y-4 text-gray-600">
                 <p>
                   Founded in 2010, CSA Print & Design started with a simple mission: to provide
                   high-quality printing services with exceptional customer care.
@@ -101,7 +101,7 @@ export default function About() {
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              className="aspect-video bg-gradient-to-br from-[var(--color-cyan)] via-[var(--color-magenta)] to-[var(--color-yellow)] rounded-lg"
+              className="aspect-video bg-gradient-to-br from-[var(--color-cyan)] via-[var(--color-magenta)] to-[var(--color-yellow)] rounded-xl shadow-lg"
             />
           </div>
         </section>
@@ -117,13 +117,13 @@ export default function About() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gray-900 border border-gray-800 rounded-lg p-6 text-center hover:border-[var(--color-cyan)] transition-all"
+                className="bg-white border border-gray-200 rounded-xl p-6 text-center hover:shadow-xl transition-all"
               >
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-magenta)] rounded-full flex items-center justify-center">
                   <value.Icon className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">{value.title}</h3>
-                <p className="text-gray-400">{value.description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{value.title}</h3>
+                <p className="text-gray-600">{value.description}</p>
               </motion.div>
             ))}
           </div>
@@ -140,7 +140,7 @@ export default function About() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-[var(--color-cyan)] transition-all group"
+                className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all group"
               >
                 {/* Avatar placeholder */}
                 <div
@@ -153,9 +153,9 @@ export default function About() {
                   }`}
                 />
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-white mb-1">{member.name}</h3>
-                  <p className="text-[var(--color-cyan)] mb-3">{member.role}</p>
-                  <p className="text-gray-400 text-sm">{member.bio}</p>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-1">{member.name}</h3>
+                  <p className="text-[var(--color-magenta)] mb-3 font-medium">{member.role}</p>
+                  <p className="text-gray-600 text-sm">{member.bio}</p>
                 </div>
               </motion.div>
             ))}
@@ -177,12 +177,12 @@ export default function About() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="text-center p-6 bg-gray-900 rounded-lg border border-gray-800"
+                className="text-center p-6 bg-white rounded-xl border border-gray-200 shadow-md"
               >
                 <div className="text-4xl font-bold bg-gradient-to-r from-[var(--color-cyan)] to-[var(--color-magenta)] bg-clip-text text-transparent mb-2">
                   {stat.number}
                 </div>
-                <div className="text-gray-400">{stat.label}</div>
+                <div className="text-gray-600">{stat.label}</div>
               </motion.div>
             ))}
           </div>
