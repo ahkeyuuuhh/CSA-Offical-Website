@@ -4,6 +4,7 @@ import "./globals.css";
 import PillNav from "@/components/PillNav";
 import Footer from "@/components/Footer";
 import PageTransition from "@/components/PageTransition";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,26 +32,28 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-gray-900">
-        <PillNav
-          logo="/light-logo.png"
-          logoAlt="CSA Print & Design"
-          items={[
-            { label: 'Home', href: '/' },
-            { label: 'Products', href: '/products' },
-            { label: 'Portfolio', href: '/samples' },
-            { label: 'About', href: '/about' },
-            { label: 'Contact', href: '/contact' }
-          ]}
-          baseColor="#0a0a0a"
-          pillColor="#ffffff"
-          hoveredPillTextColor="#ffffff"
-          pillTextColor="#0a0a0a"
-          initialLoadAnimation={true}
-        />
-        <PageTransition>
-          <main className="flex-1">{children}</main>
-        </PageTransition>
-        <Footer />
+        <AuthProvider>
+          <PillNav
+            logo="/light-logo.png"
+            logoAlt="CSA Print & Design"
+            items={[
+              { label: 'Home', href: '/' },
+              { label: 'Products', href: '/products' },
+              { label: 'Portfolio', href: '/samples' },
+              { label: 'About', href: '/about' },
+              { label: 'Contact', href: '/contact' }
+            ]}
+            baseColor="#0a0a0a"
+            pillColor="#ffffff"
+            hoveredPillTextColor="#ffffff"
+            pillTextColor="#0a0a0a"
+            initialLoadAnimation={true}
+          />
+          <PageTransition>
+            <main className="flex-1">{children}</main>
+          </PageTransition>
+          <Footer />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,12 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
-import { Mail, Phone, Clock, Send } from 'lucide-react';
+import { Mail, Phone, Clock, Send, LogOut } from 'lucide-react';
 
 export default function Contact() {
+  const { user, loading, signOut } = useAuth();
+  const router = useRouter();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -17,6 +22,21 @@ export default function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  // Auto-fill email when user is loaded
+  useEffect(() => {
+    if (user?.email) {
+      setFormData(prev => ({ ...prev, email: user.email || '' }));
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +46,13 @@ export default function Contact() {
     setTimeout(() => {
       setIsSubmitting(false);
       setSubmitStatus('success');
-      setFormData({ name: '', email: '', phone: '', service: '', message: '' });
+      setFormData({ 
+        name: '', 
+        email: user?.email || '', 
+        phone: '', 
+        service: '', 
+        message: '' 
+      });
       
       setTimeout(() => setSubmitStatus('idle'), 5000);
     }, 1500);
@@ -34,6 +60,12 @@ export default function Contact() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setShowSignOutModal(false);
+    router.push('/');
   };
 
   const contactInfo = [
@@ -57,6 +89,18 @@ export default function Contact() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
+
   return (
     <div className="relative bg-gray-950">
       {/* DarkVeil Background */}
@@ -78,6 +122,38 @@ export default function Contact() {
             title="Get In Touch"
             subtitle="Let's discuss your next project"
           />
+
+          {/* User Info and Sign Out */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 flex items-center justify-between bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-4"
+          >
+            <div className="flex items-center gap-3">
+              {user.user_metadata?.avatar_url && (
+                <img
+                  src={user.user_metadata.avatar_url}
+                  alt={user.user_metadata?.full_name || 'User'}
+                  className="w-10 h-10 rounded-full"
+                />
+              )}
+              <div>
+                <p className="text-white font-semibold">
+                  {user.user_metadata?.full_name || 'User'}
+                </p>
+                <p className="text-gray-400 text-sm">{user.email}</p>
+              </div>
+            </div>
+            <motion.button
+              onClick={() => setShowSignOutModal(true)}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-full font-medium transition-all flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </motion.button>
+          </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Contact Form */}
@@ -119,7 +195,7 @@ export default function Contact() {
 
                 <div>
                   <label htmlFor="email" className="block text-white font-medium mb-2">
-                    Email *
+                    Email * (Auto-filled from your account)
                   </label>
                   <input
                     type="email"
@@ -128,7 +204,8 @@ export default function Contact() {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-colors"
+                    disabled
+                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 transition-colors opacity-70 cursor-not-allowed"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -237,6 +314,55 @@ export default function Contact() {
           </div>
         </div>
       </div>
+
+      {/* Sign Out Confirmation Modal */}
+      <AnimatePresence>
+        {showSignOutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowSignOutModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <LogOut className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Sign Out?</h3>
+                <p className="text-gray-300 mb-8">
+                  Are you sure you want to sign out? You'll need to sign in again to send messages.
+                </p>
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={() => setShowSignOutModal(false)}
+                    className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-semibold transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleSignOut}
+                    className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Sign Out
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
