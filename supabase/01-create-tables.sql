@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS contacts (
   phone TEXT,
   service TEXT,
   message TEXT NOT NULL,
-  status TEXT DEFAULT 'new' CHECK (status IN ('new', 'in_progress', 'completed', 'archived')),
+  status TEXT DEFAULT 'unread' CHECK (status IN ('unread', 'read', 'replied', 'archived')),
+  admin_reply TEXT,
+  replied_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

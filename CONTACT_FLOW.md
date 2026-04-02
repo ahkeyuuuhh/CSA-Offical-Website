@@ -1,0 +1,240 @@
+# Contact Form Flow Diagram
+
+## User Journey
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     USER SUBMITS CONTACT                     │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  1. User signs in with Google OAuth                         │
+│     → Redirected to /contact page                           │
+│     → Name and email auto-filled                            │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  2. User fills form                                         │
+│     ✓ Name (auto-filled, disabled)                         │
+│     ✓ Email (auto-filled, disabled)                        │
+│     ○ Phone (optional)                                      │
+│     ○ Service (dropdown)                                    │
+│     ✓ Message (required)                                    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  3. User clicks "Send Message"                              │
+│     → handleSubmit() triggered                              │
+│     → setIsSubmitting(true)                                 │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  4. submitContact() called                                  │
+│     → Get current user from Supabase auth                   │
+│     → Validate user is authenticated                        │
+│     → Prepare contact data with user_id                     │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  5. Insert into database                                    │
+│     → supabase.from('contacts').insert(...)                 │
+│     → RLS checks: auth.uid() = user_id                      │
+│     → Status set to 'new'                                   │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+                    ┌─────────┴─────────┐
+                    │                   │
+              ✓ SUCCESS            ✗ ERROR
+                    │                   │
+                    ↓                   ↓
+    ┌───────────────────────┐  ┌──────────────────────┐
+    │ Show green success    │  │ Show red error box   │
+    │ message               │  │ with detailed error  │
+    │ Reset form fields     │  │ Log to console       │
+    │ Log success to console│  │ Keep form data       │
+    └───────────────────────┘  └──────────────────────┘
+```
+
+## Admin Journey
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   ADMIN VIEWS CONTACTS                       │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  1. Admin signs in                                          │
+│     → Email: csaprintanddesign@gmail.com                    │
+│     → Redirected to /admin                                  │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  2. Admin navigates to Contacts                             │
+│     → Click "Contacts" in sidebar                           │
+│     → Or go to /admin/contacts                              │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  3. getContacts() called                                    │
+│     → supabase.from('contacts').select('*')                 │
+│     → RLS checks: email = 'csaprintanddesign@gmail.com'     │
+│     → Returns all contacts                                  │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  4. Contacts displayed                                      │
+│     → List view with filters                                │
+│     → Search functionality                                  │
+│     → Status badges (new, in_progress, etc.)                │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  5. Admin clicks contact                                    │
+│     → Modal opens with full details                         │
+│     → Can update status                                     │
+│     → Changes saved to database                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Database Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    CONTACTS TABLE                            │
+├─────────────────────────────────────────────────────────────┤
+│  id              UUID (Primary Key)                         │
+│  user_id         UUID → auth.users(id)                      │
+│  name            TEXT (NOT NULL)                            │
+│  email           TEXT (NOT NULL)                            │
+│  phone           TEXT (nullable)                            │
+│  service         TEXT (nullable)                            │
+│  message         TEXT (NOT NULL)                            │
+│  status          TEXT (default: 'new')                      │
+│  created_at      TIMESTAMP                                  │
+│  updated_at      TIMESTAMP                                  │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    RLS POLICIES                              │
+├─────────────────────────────────────────────────────────────┤
+│  1. Users can insert own contacts                           │
+│     INSERT: auth.uid() = user_id                            │
+│                                                              │
+│  2. Users can view own contacts                             │
+│     SELECT: auth.uid() = user_id                            │
+│                                                              │
+│  3. Admins can view all contacts                            │
+│     SELECT: email = 'csaprintanddesign@gmail.com'           │
+│                                                              │
+│  4. Admins can update all contacts                          │
+│     UPDATE: email = 'csaprintanddesign@gmail.com'           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Error Handling Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    ERROR OCCURS                              │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  submitContact() catches error                              │
+│  → Logs full error to console                               │
+│  → Extracts error message                                   │
+│  → Throws new Error with details                            │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  handleSubmit() catches error                               │
+│  → Sets submitStatus to 'error'                             │
+│  → Sets errorMessage with details                           │
+│  → Logs to console                                          │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  UI displays error                                          │
+│  → Red error box appears                                    │
+│  → Shows error title and message                            │
+│  → Auto-hides after 8 seconds                               │
+│  → Form data preserved                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Status Lifecycle
+
+```
+┌─────────┐
+│   NEW   │ ← Contact just submitted
+└────┬────┘
+     │
+     ↓
+┌─────────────┐
+│ IN_PROGRESS │ ← Admin is working on it
+└──────┬──────┘
+       │
+       ↓
+  ┌────────────┐
+  │ COMPLETED  │ ← Request fulfilled
+  └─────┬──────┘
+        │
+        ↓
+   ┌──────────┐
+   │ ARCHIVED │ ← Closed/archived
+   └──────────┘
+```
+
+## Authentication Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    USER AUTHENTICATION                       │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  1. User clicks "Sign in with Google"                       │
+│     → Redirected to Google OAuth                            │
+│     → User authorizes app                                   │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  2. Supabase creates session                                │
+│     → User record created in auth.users                     │
+│     → Session token generated                               │
+│     → Token stored in browser                               │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│  3. User redirected back to app                             │
+│     → AuthContext loads user                                │
+│     → User data available in components                     │
+│     → Can now submit contacts                               │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Key Points
+
+### Security
+- ✓ Only authenticated users can submit
+- ✓ Users can only view their own contacts
+- ✓ Admin can view all contacts
+- ✓ RLS enforced at database level
+
+### User Experience
+- ✓ Auto-fill name and email
+- ✓ Clear success/error messages
+- ✓ Form validation
+- ✓ Responsive design
+
+### Admin Experience
+- ✓ View all contacts
+- ✓ Filter by status
+- ✓ Search contacts
+- ✓ Update status
+- ✓ View full details
+
+### Error Handling
+- ✓ Detailed error messages
+- ✓ Console logging
+- ✓ User-friendly display
+- ✓ Preserves form data on error

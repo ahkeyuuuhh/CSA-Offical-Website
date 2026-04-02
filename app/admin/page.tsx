@@ -10,7 +10,26 @@ import {
   TrendingUp, 
   Users
 } from 'lucide-react';
-import { isAdmin, getDashboardStats, getContacts, type Contact } from '@/lib/supabase/admin';
+import { 
+  isAdmin, 
+  getDashboardStats, 
+  getContacts,
+  getContactsChartData,
+  getContactsTodayChartData,
+  getWebsiteVisitsChartData,
+  type Contact 
+} from '@/lib/supabase/admin';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -23,6 +42,9 @@ export default function AdminDashboard() {
     websiteVisits: 0,
   });
   const [recentContacts, setRecentContacts] = useState<Contact[]>([]);
+  const [contactsChartData, setContactsChartData] = useState<any[]>([]);
+  const [contactsTodayChartData, setContactsTodayChartData] = useState<any[]>([]);
+  const [visitsChartData, setVisitsChartData] = useState<any[]>([]);
 
   useEffect(() => {
     async function checkAdminStatus() {
@@ -45,7 +67,17 @@ export default function AdminDashboard() {
         setStats(dashboardStats);
 
         const contacts = await getContacts();
-        setRecentContacts(contacts.slice(0, 10));
+        setRecentContacts(contacts.slice(0, 5));
+
+        // Load chart data
+        const contactsData = await getContactsChartData();
+        setContactsChartData(contactsData);
+
+        const contactsTodayData = await getContactsTodayChartData();
+        setContactsTodayChartData(contactsTodayData);
+
+        const visitsData = await getWebsiteVisitsChartData();
+        setVisitsChartData(visitsData);
       }
       
       setCheckingAdmin(false);
@@ -111,88 +143,216 @@ export default function AdminDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-12"
+            className="mb-8"
           >
-            <h1 className="text-4xl font-bold text-white mb-2">Admin Dashboard</h1>
-            <p className="text-gray-400">Welcome back, {user?.user_metadata?.full_name || user?.email}</p>
+            <h1 className="text-3xl font-bold text-white mb-1">Admin Dashboard</h1>
+            <p className="text-gray-400 text-sm">Welcome back, CSA</p>
           </motion.div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             {statCards.map((stat, index) => (
               <motion.div
                 key={stat.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-all"
+                className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-4 hover:border-purple-500/50 transition-all"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-12 h-12 ${stat.bgColor} rounded-xl flex items-center justify-center`}>
-                    <stat.icon className="w-6 h-6 text-white" />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-gray-400 text-xs mb-1">{stat.title}</h3>
+                    <p className={`text-2xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                      {stat.value}
+                    </p>
+                  </div>
+                  <div className={`w-10 h-10 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                    <stat.icon className="w-5 h-5 text-white" />
                   </div>
                 </div>
-                <h3 className="text-gray-400 text-sm mb-1">{stat.title}</h3>
-                <p className={`text-3xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                  {stat.value}
-                </p>
               </motion.div>
             ))}
           </div>
 
-          {/* Recent Contacts */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-6"
-          >
-            <h2 className="text-2xl font-bold text-white mb-6">Recent Contacts</h2>
-            <div className="space-y-4">
-              {recentContacts.length === 0 ? (
-                <p className="text-gray-400 text-center py-8">No contacts yet</p>
-              ) : (
-                recentContacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-white font-semibold mb-1">{contact.name}</h3>
-                        <p className="text-gray-400 text-sm mb-2">{contact.email}</p>
-                        <p className="text-gray-300 text-sm line-clamp-2">{contact.message}</p>
-                      </div>
-                      <div className="ml-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            contact.status === 'new'
-                              ? 'bg-blue-500/20 text-blue-300'
-                              : contact.status === 'in_progress'
-                              ? 'bg-yellow-500/20 text-yellow-300'
-                              : contact.status === 'completed'
-                              ? 'bg-green-500/20 text-green-300'
-                              : 'bg-gray-500/20 text-gray-300'
-                          }`}
-                        >
-                          {contact.status.replace('_', ' ')}
-                        </span>
+          {/* Charts and Recent Contacts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Row 1 Left: Contacts Today Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-5"
+            >
+              <h2 className="text-lg font-bold text-white mb-4">Contacts Today</h2>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={contactsTodayChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis 
+                    dataKey="hour" 
+                    stroke="#9ca3af" 
+                    fontSize={12}
+                    tick={{ fill: '#9ca3af' }}
+                  />
+                  <YAxis 
+                    stroke="#9ca3af" 
+                    fontSize={12}
+                    tick={{ fill: '#9ca3af' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="contacts" 
+                    fill="#10b981" 
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+
+            {/* Row 1 Right: Recent Contacts */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-5"
+            >
+              <h2 className="text-lg font-bold text-white mb-4">Recent Contacts</h2>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {recentContacts.length === 0 ? (
+                  <p className="text-gray-400 text-center py-6 text-sm">No contacts yet</p>
+                ) : (
+                  recentContacts.map((contact) => (
+                    <div
+                      key={contact.id}
+                      onClick={() => router.push('/admin/contacts')}
+                      className="bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition-all cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-white font-semibold text-sm truncate">{contact.name}</h3>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                                contact.status === 'unread'
+                                  ? 'bg-blue-500/20 text-blue-300'
+                                  : contact.status === 'read'
+                                  ? 'bg-yellow-500/20 text-yellow-300'
+                                  : contact.status === 'replied'
+                                  ? 'bg-green-500/20 text-green-300'
+                                  : 'bg-gray-500/20 text-gray-300'
+                              }`}
+                            >
+                              {contact.status}
+                            </span>
+                          </div>
+                          <p className="text-gray-400 text-xs truncate">{contact.email}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))
+                )}
+              </div>
+              {recentContacts.length > 0 && (
+                <motion.a
+                  href="/admin/contacts"
+                  className="block text-center mt-4 text-purple-400 hover:text-purple-300 font-medium text-sm"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  View All Contacts →
+                </motion.a>
               )}
-            </div>
-            {recentContacts.length > 0 && (
-              <motion.a
-                href="/admin/contacts"
-                className="block text-center mt-6 text-purple-400 hover:text-purple-300 font-medium"
-                whileHover={{ scale: 1.05 }}
-              >
-                View All Contacts →
-              </motion.a>
-            )}
-          </motion.div>
+            </motion.div>
+
+            {/* Row 2 Left: Total Contacts Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-5"
+            >
+              <h2 className="text-lg font-bold text-white mb-4">Total Contacts (Last 7 Days)</h2>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={contactsChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="#9ca3af" 
+                    fontSize={12}
+                    tick={{ fill: '#9ca3af' }}
+                  />
+                  <YAxis 
+                    stroke="#9ca3af" 
+                    fontSize={12}
+                    tick={{ fill: '#9ca3af' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="contacts" 
+                    stroke="#3b82f6" 
+                    strokeWidth={2}
+                    dot={{ fill: '#3b82f6', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </motion.div>
+
+            {/* Row 2 Right: Website Visits Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-5"
+            >
+              <h2 className="text-lg font-bold text-white mb-4">Website Visits (Last 7 Days)</h2>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={visitsChartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                  <XAxis 
+                    dataKey="date" 
+                    stroke="#9ca3af" 
+                    fontSize={12}
+                    tick={{ fill: '#9ca3af' }}
+                  />
+                  <YAxis 
+                    stroke="#9ca3af" 
+                    fontSize={12}
+                    tick={{ fill: '#9ca3af' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#fff'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="visits" 
+                    stroke="#a855f7" 
+                    strokeWidth={2}
+                    dot={{ fill: '#a855f7', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>

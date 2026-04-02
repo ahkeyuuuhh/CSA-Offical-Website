@@ -24,7 +24,9 @@ export default function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -47,10 +49,14 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
     
     try {
       const { submitContact } = await import('@/lib/supabase/admin');
-      await submitContact({
+      
+      console.log('Submitting contact form...');
+      
+      const result = await submitContact({
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -58,7 +64,10 @@ export default function Contact() {
         message: formData.message,
       });
       
+      console.log('Contact submitted successfully:', result);
+      
       setSubmitStatus('success');
+      setShowSuccessModal(true);
       setFormData({ 
         name: user?.user_metadata?.full_name || '', 
         email: user?.email || '', 
@@ -67,11 +76,19 @@ export default function Contact() {
         message: '' 
       });
       
-      setTimeout(() => setSubmitStatus('idle'), 5000);
+      setTimeout(() => {
+        setSubmitStatus('idle');
+        setShowSuccessModal(false);
+      }, 5000);
     } catch (error) {
       console.error('Error submitting contact:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
+      setErrorMessage(errorMsg);
       setSubmitStatus('error');
-      setTimeout(() => setSubmitStatus('idle'), 5000);
+      setTimeout(() => {
+        setSubmitStatus('idle');
+        setErrorMessage('');
+      }, 8000);
     } finally {
       setIsSubmitting(false);
     }
@@ -192,30 +209,6 @@ export default function Contact() {
               className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-8"
             >
               <h3 className="text-2xl font-bold text-white mb-6">Send Us a Message</h3>
-              
-              {submitStatus === 'success' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-green-500/20 border border-green-500/30 rounded-lg backdrop-blur-sm"
-                >
-                  <p className="text-green-300">
-                    Thank you! We'll get back to you soon.
-                  </p>
-                </motion.div>
-              )}
-
-              {submitStatus === 'error' && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-lg backdrop-blur-sm"
-                >
-                  <p className="text-red-300">
-                    Failed to submit. Please try again.
-                  </p>
-                </motion.div>
-              )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -356,6 +349,89 @@ export default function Contact() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <AnimatePresence>
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/60 backdrop-blur-md border border-green-500/30 rounded-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <Send className="w-8 h-8 text-green-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Message Sent!</h3>
+                <p className="text-gray-300 mb-6">
+                  Thank you for reaching out! We've received your message and will get back to you soon.
+                </p>
+                <motion.button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Got it!
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Error Modal */}
+      <AnimatePresence>
+        {submitStatus === 'error' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setSubmitStatus('idle')}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/60 backdrop-blur-md border border-red-500/30 rounded-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <X className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Submission Failed</h3>
+                <p className="text-gray-300 mb-2">
+                  We couldn't send your message. Please try again.
+                </p>
+                {errorMessage && (
+                  <p className="text-red-300 text-sm mb-6 bg-red-500/10 p-3 rounded-lg">
+                    {errorMessage}
+                  </p>
+                )}
+                <motion.button
+                  onClick={() => setSubmitStatus('idle')}
+                  className="px-8 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Try Again
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Sign Out Confirmation Modal */}
       <AnimatePresence>
