@@ -21,73 +21,73 @@ export default function Home() {
       id: '1',
       img: '/assets/products-asset/business-card.jpg',
       url: '/products',
-      height: 400
+      height: 300
     },
     {
       id: '2',
       img: '/assets/products-asset/customized-stickers.jpg',
       url: '/products',
-      height: 350
+      height: 280
     },
     {
       id: '3',
       img: '/assets/products-asset/photocards.jpg',
       url: '/products',
-      height: 500
+      height: 380
     },
     {
       id: '4',
       img: '/assets/products-asset/Invitation-cards.jpg',
       url: '/products',
-      height: 450
+      height: 340
     },
     {
       id: '5',
       img: '/assets/products-asset/customized-pins.jpg',
       url: '/products',
-      height: 380
+      height: 300
     },
     {
       id: '6',
       img: '/assets/products-asset/magnetic-bookmarks.jpg',
       url: '/products',
-      height: 420
+      height: 320
     },
     {
       id: '7',
       img: '/assets/products-asset/Keychains.jpg',
       url: '/products',
-      height: 400
+      height: 300
     },
     {
       id: '8',
       img: '/assets/products-asset/Ref-magnets.jpg',
       url: '/products',
-      height: 360
+      height: 280
     },
     {
       id: '9',
       img: '/assets/products-asset/customized-box.png',
       url: '/products',
-      height: 440
+      height: 330
     },
     {
       id: '10',
       img: '/assets/products-asset/customized-loot-chip-bags.jpg',
       url: '/products',
-      height: 390
+      height: 300
     },
     {
       id: '11',
       img: '/assets/products-asset/customized-sintr-boards.jpg',
       url: '/products',
-      height: 410
+      height: 310
     },
     {
       id: '12',
       img: '/assets/products-asset/cute-couple-pins.jpg',
       url: '/products',
-      height: 370
+      height: 290
     }
   ];
 
@@ -118,7 +118,7 @@ export default function Home() {
             />
           </FadeIn>
           <FadeIn delay={0.2}>
-            <div style={{ height: '600px', position: 'relative' }}>
+            <div className="h-[400px] sm:h-[500px] md:h-[600px] relative overflow-visible">
               <CircularGallery
                 bend={3}
                 textColor="#ffffff"
@@ -150,7 +150,7 @@ export default function Home() {
       </section>
 
       {/* About Overview Section */}
-      <section className="relative py-24 bg-gray-900 overflow-hidden">
+      <section className="relative py-24 bg-gray-900">
         {/* Aurora Background */}
         <div className="absolute inset-0 opacity-20">
           <Aurora
@@ -162,7 +162,7 @@ export default function Home() {
         </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             <SlideIn direction="left">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 About CSA Print & Design
@@ -189,17 +189,19 @@ export default function Home() {
               </motion.a>
             </SlideIn>
             <SlideIn direction="right">
-              <Masonry
-                items={masonryItems}
-                ease="power3.out"
-                duration={0.6}
-                stagger={0.05}
-                animateFrom="bottom"
-                scaleOnHover
-                hoverScale={0.95}
-                blurToFocus
-                colorShiftOnHover={false}
-              />
+              <div className="w-full pb-8">
+                <Masonry
+                  items={masonryItems}
+                  ease="power3.out"
+                  duration={0.6}
+                  stagger={0.05}
+                  animateFrom="bottom"
+                  scaleOnHover
+                  hoverScale={0.95}
+                  blurToFocus
+                  colorShiftOnHover={false}
+                />
+              </div>
             </SlideIn>
           </div>
         </div>
