@@ -171,11 +171,12 @@ export default function Samples() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-w-6xl w-full max-h-[85vh] rounded-lg overflow-hidden relative"
+              className="max-w-6xl w-full flex flex-col md:flex-row gap-6 items-center"
             >
               {samples.find((s) => s.id === selectedImage) && (
                 <>
-                  <div className="relative w-full h-[70vh]">
+                  {/* Image Container */}
+                  <div className="relative w-full md:w-2/3 h-[50vh] md:h-[70vh] rounded-lg overflow-hidden bg-black/40">
                     {samples.find((s) => s.id === selectedImage)!.image_url.startsWith('data:') ? (
                       <img
                         src={samples.find((s) => s.id === selectedImage)!.image_url}
@@ -191,15 +192,17 @@ export default function Samples() {
                       />
                     )}
                   </div>
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">
+                  
+                  {/* Details Panel */}
+                  <div className="w-full md:w-1/3 bg-black/60 backdrop-blur-md rounded-lg p-6 md:p-8 border border-white/10">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
                       {samples.find((s) => s.id === selectedImage)?.title}
                     </h2>
-                    <p className="text-xl text-purple-400 mb-2">
+                    <p className="text-lg md:text-xl text-purple-400 mb-4">
                       {samples.find((s) => s.id === selectedImage)?.category}
                     </p>
                     {samples.find((s) => s.id === selectedImage)?.description && (
-                      <p className="text-gray-300">
+                      <p className="text-gray-300 leading-relaxed">
                         {samples.find((s) => s.id === selectedImage)?.description}
                       </p>
                     )}

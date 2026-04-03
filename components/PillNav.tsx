@@ -367,7 +367,7 @@ const PillNav: React.FC<PillNavProps> = ({
                   href={item.href}
                   className="block py-3 px-4 text-[16px] font-medium rounded-[50px] transition-all duration-200"
                   style={defaultStyle}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={toggleMobileMenu}
                 >
                   {item.label}
                 </Link>

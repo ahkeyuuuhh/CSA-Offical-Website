@@ -1,5 +1,38 @@
 @import "tailwindcss";
 
+/* Custom Fonts */
+@font-face {
+  font-family: 'Mileast';
+  src: url('/assets/Mileast.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Milker';
+  src: url('/assets/Milker.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('/assets/Comfortaa-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('/assets/Comfortaa-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
@@ -8,6 +41,10 @@
   --color-cyan: #06b6d4;
   --color-magenta: #ec4899;
   --color-yellow: #f59e0b;
+  
+  /* Custom Fonts */
+  --font-heading: 'Mileast', sans-serif;
+  --font-body: 'Comfortaa', sans-serif;
 }
 
 @theme inline {
@@ -32,9 +69,28 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply heading font to all headings, but exclude buttons and nav */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), sans-serif;
+}
+
+/* Keep buttons and nav with body font */
+button, 
+a[role="menuitem"],
+nav a,
+.pill-label,
+.font-semibold {
+  font-family: var(--font-body), sans-serif;
+}
+
+/* Only apply heading font to bold text that's not in buttons or nav */
+.font-bold:not(button):not(nav *):not(a) {
+  font-family: var(--font-heading), sans-serif;
 }
 
 /* Smooth scroll behavior */
