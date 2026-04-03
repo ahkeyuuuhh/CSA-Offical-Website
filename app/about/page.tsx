@@ -4,35 +4,112 @@ import { motion } from 'framer-motion';
 import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
 import ProfileCard from '@/components/ProfileCard';
+import Masonry from '@/components/Masonry';
 import { Award, Users, Zap, Target } from 'lucide-react';
 import { usePageView } from '@/hooks/usePageView';
 
 export default function About() {
   usePageView('about');
+  
+  const masonryItems = [
+    {
+      id: '1',
+      img: '/assets/products-asset/business-card.jpg',
+      url: '/products',
+      height: 400
+    },
+    {
+      id: '2',
+      img: '/assets/products-asset/customized-stickers.jpg',
+      url: '/products',
+      height: 350
+    },
+    {
+      id: '3',
+      img: '/assets/products-asset/photocards.jpg',
+      url: '/products',
+      height: 500
+    },
+    {
+      id: '4',
+      img: '/assets/products-asset/Invitation-cards.jpg',
+      url: '/products',
+      height: 450
+    },
+    {
+      id: '5',
+      img: '/assets/products-asset/customized-pins.jpg',
+      url: '/products',
+      height: 380
+    },
+    {
+      id: '6',
+      img: '/assets/products-asset/magnetic-bookmarks.jpg',
+      url: '/products',
+      height: 420
+    },
+    {
+      id: '7',
+      img: '/assets/products-asset/Keychains.jpg',
+      url: '/products',
+      height: 400
+    },
+    {
+      id: '8',
+      img: '/assets/products-asset/Ref-magnets.jpg',
+      url: '/products',
+      height: 360
+    },
+    {
+      id: '9',
+      img: '/assets/products-asset/customized-box.png',
+      url: '/products',
+      height: 440
+    },
+    {
+      id: '10',
+      img: '/assets/products-asset/customized-loot-chip-bags.jpg',
+      url: '/products',
+      height: 390
+    },
+    {
+      id: '11',
+      img: '/assets/products-asset/customized-sintr-boards.jpg',
+      url: '/products',
+      height: 410
+    },
+    {
+      id: '12',
+      img: '/assets/products-asset/cute-couple-pins.jpg',
+      url: '/products',
+      height: 370
+    }
+  ];
+
   const team = [
     {
       name: 'Aki Zita',
       role: 'Editor / Developer',
       email: 'zitacristel@gmail.com',
-      avatarUrl: '/assets/aki.png',
-      behindGlowColor: 'rgba(125, 190, 255, 0.67)',
-      innerGradient: 'linear-gradient(145deg,#60496e8c 0%,#71C4FF44 100%)',
+      avatarUrl: '/team/aki.png',
+      behindGlowColor: 'rgba(125, 190, 255, 0.2)',
+      innerGradient: 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
     },
     {
       name: 'Stacy Lugares',
       role: 'Business Owner',
       email: 'cithruscaleb20@gmail.com',
-      avatarUrl: '/assets/stacy.png',
-      behindGlowColor: 'rgba(233, 30, 99, 0.67)',
-      innerGradient: 'linear-gradient(145deg,#6e4960 0%,#FF71C444 100%)',
+      avatarUrl: '/team/stacy.png',
+      behindGlowColor: 'rgba(233, 30, 99, 0.2)',
+      innerGradient: 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
     },
     {
       name: 'Cheannaly Dearing',
       role: 'Social Media Manager',
       email: 'cheannalyjoyeusantos@gmail.com',
-      avatarUrl: '/assets/chea.png',
-      behindGlowColor: 'rgba(82, 39, 255, 0.67)',
-      innerGradient: 'linear-gradient(145deg,#4e3c6e 0%,#9D71FF44 100%)',
+      avatarUrl: '/team/chea.png',
+      behindGlowColor: 'rgba(82, 39, 255, 0.2)',
+      innerGradient: 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
     },
   ];
 
@@ -96,8 +173,8 @@ export default function About() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
               >
-                <h2 className="text-3xl font-bold text-white mb-6">Our Story</h2>
-                <div className="space-y-4 text-gray-300">
+                <h2 className="text-4xl font-bold text-white mb-8">Our Story</h2>
+                <div className="space-y-6 text-gray-300 text-lg">
                   <p>
                     Founded by three ambitious friends, CSA Print & Design is the result of entrepreneurial spirit and professional investment. We saw an opportunity to bridge the gap between creative ideas and high-quality physical prints.
                   </p>
@@ -114,8 +191,20 @@ export default function About() {
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                className="aspect-video bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-xl shadow-lg"
-              />
+                className="scale-90 origin-center"
+              >
+                <Masonry
+                  items={masonryItems}
+                  ease="power3.out"
+                  duration={0.6}
+                  stagger={0.05}
+                  animateFrom="bottom"
+                  scaleOnHover
+                  hoverScale={0.95}
+                  blurToFocus
+                  colorShiftOnHover={false}
+                />
+              </motion.div>
             </div>
           </section>
 
@@ -159,7 +248,7 @@ export default function About() {
                     miniAvatarUrl={member.avatarUrl}
                     name={member.name}
                     title={member.role}
-                    handle={member.email.split('@')[0]}
+                    handle={member.email}
                     status="Available"
                     contactText="Email"
                     showUserInfo={true}
