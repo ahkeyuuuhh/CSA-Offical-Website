@@ -1,116 +1,88 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
+import Loader from '@/components/Loader';
 import { X } from 'lucide-react';
 import { usePageView } from '@/hooks/usePageView';
+import { getProducts, type Product } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Products() {
   usePageView('products');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const productsData = await getProducts();
+        setProducts(productsData);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+
+    // Set up real-time subscription for products
+    const supabase = createClient();
+    const channel = supabase
+      .channel('products-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'products'
+        },
+        async (payload) => {
+          console.log('Product change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Add new product
+            setProducts(prev => [payload.new as Product, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            // Update existing product
+            setProducts(prev => 
+              prev.map(p => p.id === payload.new.id ? payload.new as Product : p)
+            );
+            // Update selected product if it's the one being viewed
+            if (selectedProduct?.id === payload.new.id) {
+              setSelectedProduct(payload.new as Product);
+            }
+          } else if (payload.eventType === 'DELETE') {
+            // Remove deleted product
+            setProducts(prev => prev.filter(p => p.id !== payload.old.id));
+            // Close modal if viewing deleted product
+            if (selectedProduct?.id === payload.old.id) {
+              setSelectedProduct(null);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedProduct]);
+
+  // Get unique categories from products
   const categories = [
     { id: 'all', label: 'All Products' },
-    { id: 'print', label: 'Print Materials' },
-    { id: 'custom', label: 'Custom Items' },
-    { id: 'specialty', label: 'Specialty' },
-  ];
-
-  const products = [
-    {
-      id: 1,
-      title: 'Business Cards',
-      category: 'print',
-      description: 'Premium business cards with various finishes',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/business-card.jpg',
-      features: ['Multiple finishes', 'Custom designs', 'Fast turnaround'],
-    },
-    {
-      id: 2,
-      title: 'Custom Stickers',
-      category: 'custom',
-      description: 'High-quality custom stickers in any shape',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/customized-stickers.jpg',
-      features: ['Any shape', 'Waterproof', 'Vibrant colors'],
-    },
-    {
-      id: 3,
-      title: 'Photocards',
-      category: 'print',
-      description: 'Professional photocards for any occasion',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/photocards.jpg',
-      features: ['High quality', 'Multiple sizes', 'Quick turnaround'],
-    },
-    {
-      id: 4,
-      title: 'Invitation Cards',
-      category: 'print',
-      description: 'Beautiful invitation cards for events',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/Invitation-cards.jpg',
-      features: ['Custom designs', 'Premium paper', 'Elegant finishes'],
-    },
-    {
-      id: 5,
-      title: 'Custom Pins',
-      category: 'custom',
-      description: 'Unique custom pins and badges',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/customized-pins.jpg',
-      features: ['Metal or enamel', 'Any design', 'Bulk discounts'],
-    },
-    {
-      id: 6,
-      title: 'Magnetic Bookmarks',
-      category: 'specialty',
-      description: 'Practical and stylish magnetic bookmarks',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/magnetic-bookmarks.jpg',
-      features: ['Durable', 'Custom designs', 'Perfect gifts'],
-    },
-    {
-      id: 7,
-      title: 'Keychains',
-      category: 'custom',
-      description: 'Custom keychains in various materials',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/Keychains.jpg',
-      features: ['Acrylic or metal', 'Any design', 'Great for promotions'],
-    },
-    {
-      id: 8,
-      title: 'Loyalty Cards',
-      category: 'print',
-      description: 'Professional loyalty cards for businesses',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/LOYALTY_CARD_MOCKUP.jpg',
-      features: ['Plastic cards', 'Custom branding', 'Bulk pricing'],
-    },
-    {
-      id: 9,
-      title: 'Ref Magnets',
-      category: 'specialty',
-      description: 'Custom refrigerator magnets',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/Ref-magnets.jpg',
-      features: ['Strong magnets', 'Any shape', 'Full color'],
-    },
-    {
-      id: 10,
-      title: 'Custom Boxes',
-      category: 'custom',
-      description: 'Branded packaging boxes',
-      price: 'From ₱40.00',
-      image: '/assets/products-asset/customized-box.png',
-      features: ['Any size', 'Custom printing', 'Eco-friendly'],
-    },
+    ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))
+      .map(cat => ({
+        id: cat as string,
+        label: cat!.charAt(0).toUpperCase() + cat!.slice(1)
+      }))
   ];
 
   const filteredProducts =
@@ -173,38 +145,54 @@ export default function Products() {
           </div>
 
           {/* Products Grid - Smaller Cards */}
-          <motion.div
-            layout
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-          >
-            {filteredProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ delay: index * 0.03 }}
-                onClick={() => setSelectedProduct(product)}
-                className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-[var(--color-magenta)] transition-all group cursor-pointer"
-                whileHover={{ y: -4, scale: 1.02 }}
-              >
-                <div className="relative aspect-square overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.title}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="p-3">
-                  <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">{product.title}</h3>
-                  <p className="text-[var(--color-magenta)] font-bold text-xs">{product.price}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
+          {loading ? (
+            <Loader />
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-xl">No products available yet.</div>
+            </div>
+          ) : (
+            <motion.div
+              layout
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+            >
+              {filteredProducts.map((product, index) => (
+                <motion.div
+                  key={product.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.03 }}
+                  onClick={() => setSelectedProduct(product)}
+                  className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden hover:border-[var(--color-magenta)] transition-all group cursor-pointer"
+                  whileHover={{ y: -4, scale: 1.02 }}
+                >
+                  <div className="relative aspect-square overflow-hidden">
+                    {product.image_url.startsWith('data:') ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    ) : (
+                      <Image
+                        src={product.image_url}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <div className="p-3">
+                    <h3 className="text-sm font-semibold text-white mb-1 line-clamp-1">{product.name}</h3>
+                    <p className="text-[var(--color-magenta)] font-bold text-xs">₱{product.price.toFixed(2)}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
 
@@ -236,19 +224,27 @@ export default function Products() {
               <div className="grid md:grid-cols-2 gap-6 p-6">
                 {/* Image */}
                 <div className="relative aspect-square rounded-2xl overflow-hidden">
-                  <Image
-                    src={selectedProduct.image}
-                    alt={selectedProduct.title}
-                    fill
-                    className="object-cover"
-                  />
+                  {selectedProduct.image_url.startsWith('data:') ? (
+                    <img
+                      src={selectedProduct.image_url}
+                      alt={selectedProduct.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={selectedProduct.image_url}
+                      alt={selectedProduct.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
 
                 {/* Details */}
                 <div className="flex flex-col justify-center">
-                  <h2 className="text-3xl font-bold text-white mb-4">{selectedProduct.title}</h2>
+                  <h2 className="text-3xl font-bold text-white mb-4">{selectedProduct.name}</h2>
                   <p className="text-gray-200 mb-6 leading-relaxed">{selectedProduct.description}</p>
-                  <p className="text-[var(--color-magenta)] font-bold text-2xl mb-8">{selectedProduct.price}</p>
+                  <p className="text-[var(--color-magenta)] font-bold text-2xl mb-8">₱{selectedProduct.price.toFixed(2)}</p>
 
                   <motion.a
                     href="/contact"

@@ -84,8 +84,7 @@ export default function About() {
           >
             <h1 className="text-5xl font-bold text-white mb-6">About CSA Print & Design</h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              For over a decade, we've been helping businesses bring their creative visions to life
-              through exceptional printing and design services.
+              Born from the shared ambition of three college students, we transform creative visions into reality through exceptional printing and design services.
             </p>
           </motion.div>
 
@@ -100,16 +99,13 @@ export default function About() {
                 <h2 className="text-3xl font-bold text-white mb-6">Our Story</h2>
                 <div className="space-y-4 text-gray-300">
                   <p>
-                    Founded in 2010, CSA Print & Design started with a simple mission: to provide
-                    high-quality printing services with exceptional customer care.
+                    Founded by three ambitious friends, CSA Print & Design is the result of entrepreneurial spirit and professional investment. We saw an opportunity to bridge the gap between creative ideas and high-quality physical prints.
                   </p>
                   <p>
-                    What began as a small print shop has grown into a full-service design and
-                    printing company, serving hundreds of satisfied clients across the region.
+                    Starting with a single set of printing equipment, we have built a collaborative workflow that focuses on precision and client satisfaction. We believe that great design should be accessible and professionally executed.
                   </p>
                   <p>
-                    Today, we combine traditional craftsmanship with cutting-edge technology to
-                    deliver results that exceed expectations.
+                    Every project we handle is a testament to our commitment to growth, innovation, and the power of collaboration.
                   </p>
                 </div>
               </motion.div>

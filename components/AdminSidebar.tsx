@@ -1,23 +1,33 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   LayoutDashboard, 
   Users, 
   Package, 
-  Image, 
+  Image as ImageIcon, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Update CSS variable when collapse state changes
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--sidebar-width',
+      isCollapsed ? '80px' : '256px'
+    );
+  }, [isCollapsed]);
 
   const menuItems = [
     {
@@ -39,7 +49,7 @@ export default function AdminSidebar() {
       active: pathname === '/admin/products',
     },
     {
-      icon: Image,
+      icon: ImageIcon,
       label: 'Manage Portfolio',
       href: '/admin/portfolio',
       active: pathname === '/admin/portfolio',
@@ -53,22 +63,48 @@ export default function AdminSidebar() {
 
   return (
     <>
-      <div className="fixed left-0 top-0 h-screen w-64 bg-black/60 backdrop-blur-md border-r border-white/10 z-50">
+      <motion.div 
+        className="fixed left-4 top-4 bottom-4 bg-black/60 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+        animate={{ width: isCollapsed ? '80px' : '256px' }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+      >
+        {/* Toggle Button - Top Right */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all z-10"
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          {isCollapsed ? <ChevronRight className="w-5 h-5 text-white" /> : <ChevronLeft className="w-5 h-5 text-white" />}
+        </button>
+
         {/* Logo */}
         <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">CSA</span>
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+              <img 
+                src="/assets/light-logo.png" 
+                alt="CSA Logo"
+                className="w-full h-full object-contain"
+              />
             </div>
-            <div>
-              <h2 className="text-white font-bold text-lg">Admin Panel</h2>
-              <p className="text-gray-400 text-xs">CSA Print & Design</p>
-            </div>
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.div
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <h2 className="text-white font-bold text-lg whitespace-nowrap">Admin Panel</h2>
+                  <p className="text-gray-400 text-xs whitespace-nowrap">CSA Print & Design</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
         {/* Menu Items */}
-        <nav className="p-4 flex-1">
+        <nav className="p-4 flex-1 overflow-y-auto">
           <div className="space-y-2">
             {menuItems.map((item) => (
               <motion.a
@@ -79,77 +115,105 @@ export default function AdminSidebar() {
                     ? 'bg-purple-500 text-white'
                     : 'text-gray-400 hover:bg-white/5 hover:text-white'
                 }`}
-                whileHover={{ x: 4 }}
+                whileHover={{ x: isCollapsed ? 0 : 4 }}
                 whileTap={{ scale: 0.98 }}
+                title={isCollapsed ? item.label : ''}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium flex-1">{item.label}</span>
-                {item.active && <ChevronRight className="w-4 h-4" />}
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <AnimatePresence>
+                  {!isCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: 'auto' }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="font-medium flex-1 whitespace-nowrap"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {item.active && !isCollapsed && <ChevronRight className="w-4 h-4" />}
               </motion.a>
             ))}
           </div>
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-4 border-t border-white/10">
+        {/* Logout Button - At Bottom */}
+        <div className="p-4 border-t border-white/10 mt-auto">
           <motion.button
             onClick={() => setShowLogoutModal(true)}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-all"
-            whileHover={{ x: 4 }}
+            whileHover={{ x: isCollapsed ? 0 : 4 }}
             whileTap={{ scale: 0.98 }}
+            title={isCollapsed ? 'Logout' : ''}
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Logout</span>
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          onClick={() => setShowLogoutModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-full"
-          >
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
-                <LogOut className="w-8 h-8 text-red-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-white mb-3">Logout?</h3>
-              <p className="text-gray-300 mb-8">
-                Are you sure you want to logout from the admin panel?
-              </p>
-              <div className="flex gap-3">
-                <motion.button
-                  onClick={() => setShowLogoutModal(false)}
-                  className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-semibold transition-all"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Cancel
-                </motion.button>
-                <motion.button
-                  onClick={handleLogout}
-                  className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-all"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            <AnimatePresence>
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="font-medium whitespace-nowrap"
                 >
                   Logout
-                </motion.button>
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowLogoutModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <LogOut className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Logout?</h3>
+                <p className="text-gray-300 mb-8">
+                  Are you sure you want to logout from the admin panel?
+                </p>
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={() => setShowLogoutModal(false)}
+                    className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-full font-semibold transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleLogout}
+                    className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-full font-semibold transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Logout
+                  </motion.button>
+                </div>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 }

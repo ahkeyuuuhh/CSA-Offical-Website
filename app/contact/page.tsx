@@ -108,14 +108,14 @@ export default function Contact() {
     {
       Icon: Phone,
       title: 'Phone',
-      details: '(555) 123-4567',
-      link: 'tel:+15551234567',
+      details: '0908 772 4771',
+      link: 'tel:+639087724771',
     },
     {
       Icon: Mail,
       title: 'Email',
-      details: 'info@csaprint.com',
-      link: 'mailto:info@csaprint.com',
+      details: 'csaprintanddesign@gmail.com',
+      link: 'mailto:csaprintanddesign@gmail.com',
     },
     {
       Icon: () => (
@@ -124,13 +124,23 @@ export default function Contact() {
         </svg>
       ),
       title: 'Facebook',
-      details: 'CSA Prints and Design',
-      link: 'https://facebook.com/csaprintsanddesign',
+      details: 'CSA Print & Design',
+      link: 'https://www.facebook.com/profile.php?id=61577035086365',
     },
     {
       Icon: Clock,
       title: 'Hours',
-      details: 'Mon-Fri: 9AM-6PM, Sat: 10AM-4PM',
+      details: 'Monday - Sunday: 10:00am-8:00pm',
+      link: '#',
+    },
+    {
+      Icon: () => (
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      ),
+      title: 'Location',
+      details: 'Olongapo City, Zambales, Philippines',
       link: '#',
     },
   ];

@@ -1,3 +1,5 @@
+'use client';
+
 import AdminSidebar from '@/components/AdminSidebar';
 
 export default function AdminLayout({
@@ -8,7 +10,12 @@ export default function AdminLayout({
   return (
     <div className="min-h-screen bg-gray-950">
       <AdminSidebar />
-      <div className="ml-64 min-h-screen">
+      <div 
+        className="min-h-screen transition-all duration-300 p-4"
+        style={{ 
+          marginLeft: 'calc(var(--sidebar-width, 256px) + 16px)' 
+        }}
+      >
         {children}
       </div>
     </div>

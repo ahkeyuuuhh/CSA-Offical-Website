@@ -168,10 +168,10 @@ export default function Home() {
                 About CSA Print & Design
               </h2>
               <p className="text-lg text-gray-300 mb-6 leading-relaxed">
-                With over a decade of experience in the printing and design industry, CSA Print & Design has become a trusted partner for businesses and individuals seeking exceptional quality and creative solutions.
+                Born from the shared ambition of three college students, CSA Print & Design began as a vision to turn creativity into a thriving enterprise. What started as a strategic investment in professional printing equipment has evolved into a collaborative business dedicated to delivering high-quality visual solutions.
               </p>
               <p className="text-lg text-gray-300 mb-8 leading-relaxed">
-                Our commitment to excellence, attention to detail, and passion for bringing ideas to life sets us apart. From small personal projects to large corporate campaigns, we deliver results that exceed expectations.
+                Driven by innovation and friendship, we transform ideas into tangible results.
               </p>
               <motion.a
                 href="/about"

@@ -1,68 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
+import Loader from '@/components/Loader';
 import ShapeGrid from '@/components/ShapeGrid';
 import { X } from 'lucide-react';
 import { usePageView } from '@/hooks/usePageView';
+import { getPortfolio, type Portfolio } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Samples() {
   usePageView('portfolio');
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [samples, setSamples] = useState<Portfolio[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const samples = [
-    {
-      id: 1,
-      title: 'Invitation Cards',
-      category: 'Print Materials',
-      image: '/assets/samples-asset/Invitation-cards-sample.jpg',
-    },
-    {
-      id: 2,
-      title: 'Magnetic Bookmarks',
-      category: 'Custom Items',
-      image: '/assets/samples-asset/magnetic-bookmarks-sample.jpg',
-    },
-    {
-      id: 3,
-      title: 'Magnetic Bookmarks Set',
-      category: 'Custom Items',
-      image: '/assets/samples-asset/magnetic-bookmarks-sample2.jpg',
-    },
-    {
-      id: 4,
-      title: 'Photocards',
-      category: 'Print Materials',
-      image: '/assets/samples-asset/photocards-sample.jpg',
-    },
-    {
-      id: 5,
-      title: 'Ref Magnets',
-      category: 'Specialty',
-      image: '/assets/samples-asset/ref-magnets-sample.jpg',
-    },
-    {
-      id: 6,
-      title: 'Ref Magnets Collection',
-      category: 'Specialty',
-      image: '/assets/samples-asset/ref-magnets-sample2.jpg',
-    },
-    {
-      id: 7,
-      title: 'Custom Stickers',
-      category: 'Custom Items',
-      image: '/assets/samples-asset/stickers-sample2.jpg',
-    },
-    {
-      id: 8,
-      title: 'Sticker Designs',
-      category: 'Custom Items',
-      image: '/assets/samples-asset/stickers-sample3.jpg',
-    },
-  ];
+  useEffect(() => {
+    async function loadPortfolio() {
+      try {
+        const portfolioData = await getPortfolio();
+        setSamples(portfolioData);
+      } catch (error) {
+        console.error('Error loading portfolio:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPortfolio();
+
+    // Set up real-time subscription for portfolio
+    const supabase = createClient();
+    const channel = supabase
+      .channel('portfolio-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'portfolio'
+        },
+        async (payload) => {
+          console.log('Portfolio change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Add new portfolio item
+            setSamples(prev => [payload.new as Portfolio, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            // Update existing portfolio item
+            setSamples(prev => 
+              prev.map(p => p.id === payload.new.id ? payload.new as Portfolio : p)
+            );
+          } else if (payload.eventType === 'DELETE') {
+            // Remove deleted portfolio item
+            setSamples(prev => prev.filter(p => p.id !== payload.old.id));
+            // Close modal if viewing deleted item
+            if (selectedImage === payload.old.id) {
+              setSelectedImage(null);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedImage]);
 
   return (
     <div className="relative bg-gray-950">
@@ -87,40 +94,56 @@ export default function Samples() {
           />
 
           {/* Gallery Grid - Smaller Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {samples.map((sample, index) => (
-              <motion.div
-                key={sample.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ scale: 1.02, y: -4 }}
-                onClick={() => setSelectedImage(sample.id)}
-                className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group bg-black/40 backdrop-blur-md border border-white/10 hover:border-purple-500 transition-all"
-              >
-                <Image
-                  src={sample.image}
-                  alt={sample.title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-4">
-                  <div className="text-center">
-                    <h3 className="text-sm font-bold text-white mb-1">{sample.title}</h3>
-                    <p className="text-xs text-purple-400">{sample.category}</p>
+          {loading ? (
+            <Loader />
+          ) : samples.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 text-xl">No portfolio items available yet.</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {samples.map((sample, index) => (
+                <motion.div
+                  key={sample.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  onClick={() => setSelectedImage(sample.id)}
+                  className="relative aspect-square rounded-2xl overflow-hidden cursor-pointer group bg-black/40 backdrop-blur-md border border-white/10 hover:border-purple-500 transition-all"
+                >
+                  {sample.image_url.startsWith('data:') ? (
+                    <img
+                      src={sample.image_url}
+                      alt={sample.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <Image
+                      src={sample.image_url}
+                      alt={sample.title}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  )}
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-4">
+                    <div className="text-center">
+                      <h3 className="text-sm font-bold text-white mb-1">{sample.title}</h3>
+                      <p className="text-xs text-purple-400">{sample.category}</p>
+                    </div>
                   </div>
-                </div>
 
-                {/* Category Badge */}
-                <div className="absolute top-3 left-3 px-2 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
-                  <span className="text-xs text-white font-medium">{sample.category}</span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  {/* Category Badge */}
+                  <div className="absolute top-3 left-3 px-2 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                    <span className="text-xs text-white font-medium">{sample.category}</span>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -148,23 +171,38 @@ export default function Samples() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-w-4xl w-full aspect-square rounded-lg overflow-hidden relative"
+              className="max-w-6xl w-full max-h-[85vh] rounded-lg overflow-hidden relative"
             >
               {samples.find((s) => s.id === selectedImage) && (
                 <>
-                  <Image
-                    src={samples.find((s) => s.id === selectedImage)!.image}
-                    alt={samples.find((s) => s.id === selectedImage)!.title}
-                    fill
-                    className="object-contain"
-                  />
+                  <div className="relative w-full h-[70vh]">
+                    {samples.find((s) => s.id === selectedImage)!.image_url.startsWith('data:') ? (
+                      <img
+                        src={samples.find((s) => s.id === selectedImage)!.image_url}
+                        alt={samples.find((s) => s.id === selectedImage)!.title}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <Image
+                        src={samples.find((s) => s.id === selectedImage)!.image_url}
+                        alt={samples.find((s) => s.id === selectedImage)!.title}
+                        fill
+                        className="object-contain"
+                      />
+                    )}
+                  </div>
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-8">
                     <h2 className="text-3xl font-bold text-white mb-2">
                       {samples.find((s) => s.id === selectedImage)?.title}
                     </h2>
-                    <p className="text-xl text-purple-400">
+                    <p className="text-xl text-purple-400 mb-2">
                       {samples.find((s) => s.id === selectedImage)?.category}
                     </p>
+                    {samples.find((s) => s.id === selectedImage)?.description && (
+                      <p className="text-gray-300">
+                        {samples.find((s) => s.id === selectedImage)?.description}
+                      </p>
+                    )}
                   </div>
                 </>
               )}

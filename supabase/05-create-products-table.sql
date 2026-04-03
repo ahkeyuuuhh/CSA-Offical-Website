@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS products (
 -- Enable RLS
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
+-- Enable real-time for products table
+ALTER PUBLICATION supabase_realtime ADD TABLE products;
+
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Anyone can view products" ON products;
 DROP POLICY IF EXISTS "Admins can insert products" ON products;

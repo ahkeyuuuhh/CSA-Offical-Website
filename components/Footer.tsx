@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -69,19 +69,40 @@ export default function Footer() {
                 <div className="w-8 h-8 bg-[var(--color-magenta)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Phone className="w-4 h-4 text-[var(--color-magenta)]" />
                 </div>
-                <span>(555) 123-4567</span>
+                <span>0908 772 4771</span>
               </li>
               <li className="flex items-center gap-3 text-gray-400">
                 <div className="w-8 h-8 bg-[var(--color-magenta)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Mail className="w-4 h-4 text-[var(--color-magenta)]" />
                 </div>
-                <span>info@csaprint.com</span>
+                <span>csaprintanddesign@gmail.com</span>
+              </li>
+              <li className="flex items-center gap-3 text-gray-400">
+                <div className="w-8 h-8 bg-[var(--color-magenta)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-[var(--color-magenta)]" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </div>
+                <a 
+                  href="https://www.facebook.com/profile.php?id=61577035086365" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-[var(--color-magenta)] transition-colors"
+                >
+                  CSA Print & Design
+                </a>
+              </li>
+              <li className="flex items-center gap-3 text-gray-400">
+                <div className="w-8 h-8 bg-[var(--color-magenta)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-4 h-4 text-[var(--color-magenta)]" />
+                </div>
+                <span>Mon-Sun: 10:00am-8:00pm</span>
               </li>
               <li className="flex items-start gap-3 text-gray-400">
                 <div className="w-8 h-8 bg-[var(--color-magenta)]/10 rounded-lg flex items-center justify-center flex-shrink-0">
                   <MapPin className="w-4 h-4 text-[var(--color-magenta)]" />
                 </div>
-                <span>123 Print Street<br />Design City, DC 12345</span>
+                <span>Olongapo City, Zambales<br />Philippines</span>
               </li>
             </ul>
           </motion.div>

@@ -35,6 +35,17 @@ export interface AnalyticsEvent {
   created_at: string;
 }
 
+export interface Portfolio {
+  id: string;
+  title: string;
+  category: string;
+  image_url: string;
+  description?: string;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // List of admin emails
 const ADMIN_EMAILS = [
   'csaprintanddesign@gmail.com'
@@ -452,6 +463,103 @@ export async function deleteMultipleProducts(productIds: string[]) {
     .from('products')
     .delete()
     .in('id', productIds);
+
+  if (error) throw error;
+}
+
+
+// ============================================
+// PORTFOLIO MANAGEMENT FUNCTIONS
+// ============================================
+
+// Get all portfolio items
+export async function getPortfolio() {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('portfolio')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as Portfolio[];
+}
+
+// Get single portfolio item
+export async function getPortfolioItem(portfolioId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('portfolio')
+    .select('*')
+    .eq('id', portfolioId)
+    .single();
+
+  if (error) throw error;
+  return data as Portfolio;
+}
+
+// Create portfolio item
+export async function createPortfolioItem(portfolioData: {
+  title: string;
+  category: string;
+  image_url: string;
+  description?: string;
+  featured?: boolean;
+}) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('portfolio')
+    .insert({
+      ...portfolioData,
+      featured: portfolioData.featured || false,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Portfolio;
+}
+
+// Update portfolio item
+export async function updatePortfolioItem(portfolioId: string, portfolioData: {
+  title?: string;
+  category?: string;
+  image_url?: string;
+  description?: string;
+  featured?: boolean;
+}) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('portfolio')
+    .update({
+      ...portfolioData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', portfolioId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Portfolio;
+}
+
+// Delete portfolio item
+export async function deletePortfolioItem(portfolioId: string) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('portfolio')
+    .delete()
+    .eq('id', portfolioId);
+
+  if (error) throw error;
+}
+
+// Delete multiple portfolio items
+export async function deleteMultiplePortfolioItems(portfolioIds: string[]) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('portfolio')
+    .delete()
+    .in('id', portfolioIds);
 
   if (error) throw error;
 }
