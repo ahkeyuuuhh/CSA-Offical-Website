@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import SectionTitle from '@/components/SectionTitle';
 import DarkVeil from '@/components/DarkVeil';
-import { Mail, Phone, Clock, Send, LogOut } from 'lucide-react';
+import { Mail, Phone, Clock, Send, LogOut, X, Check } from 'lucide-react';
 import { usePageView } from '@/hooks/usePageView';
 
 export default function Contact() {

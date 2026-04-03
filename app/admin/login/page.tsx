@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import { isAdmin } from '@/lib/supabase/admin';
 import DarkVeil from '@/components/DarkVeil';
 import { Shield, AlertCircle } from 'lucide-react';
 
-export default function AdminLogin() {
+function AdminLoginContent() {
   const { user, loading, signInWithGoogle } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -146,5 +146,17 @@ export default function AdminLogin() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function AdminLogin() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    }>
+      <AdminLoginContent />
+    </Suspense>
   );
 }
