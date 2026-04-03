@@ -13,13 +13,17 @@ import {
   X,
   Send,
   Trash2,
-  Check
+  Check,
+  MoreVertical,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { 
   isAdmin, 
   getContacts, 
   markContactAsRead,
   deleteContact,
+  deleteMultipleContacts,
   replyToContact,
   type Contact 
 } from '@/lib/supabase/admin';
@@ -37,6 +41,11 @@ export default function ContactsManagement() {
   const [replyMessage, setReplyMessage] = useState('');
   const [isSendingReply, setIsSendingReply] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [selectedContactIds, setSelectedContactIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [contactMenuOpen, setContactMenuOpen] = useState<string | null>(null);
 
   useEffect(() => {
     async function checkAdminStatus() {
@@ -91,6 +100,7 @@ export default function ContactsManagement() {
 
   const handleContactClick = async (contact: Contact) => {
     setSelectedContact(contact);
+    setContactMenuOpen(null);
     
     // Mark as read if unread
     if (contact.status === 'unread') {
@@ -111,6 +121,23 @@ export default function ContactsManagement() {
 
     setIsSendingReply(true);
     try {
+      const response = await fetch('/api/send-reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: selectedContact.email,
+          message: replyMessage,
+          contactId: selectedContact.id
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send reply');
+      }
+
+      // Update contact in database
       await replyToContact(selectedContact.id, replyMessage, selectedContact.email);
       
       // Update local state
@@ -127,26 +154,75 @@ export default function ContactsManagement() {
       setSelectedContact(updatedContact);
       setReplyMessage('');
       
-      alert('Reply sent successfully!');
+      // Show appropriate success message based on email status
+      if (result.emailSent) {
+        setSuccessMessage('✅ Reply sent successfully! The user received your email at ' + selectedContact.email);
+      } else {
+        setSuccessMessage('⚠️ Reply saved to database, but email was NOT sent. Please configure RESEND_API_KEY in .env.local to enable email sending.');
+      }
+      setShowSuccessModal(true);
+      
+      // Close contact modal after showing success
+      setTimeout(() => {
+        setSelectedContact(null);
+      }, 3000);
     } catch (error) {
       console.error('Error sending reply:', error);
-      alert('Failed to send reply');
+      setSuccessMessage('❌ Failed to send reply: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setShowSuccessModal(true);
     } finally {
       setIsSendingReply(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedContact) return;
-
+  const handleDeleteSingle = async (contactId: string) => {
     try {
-      await deleteContact(selectedContact.id);
-      setContacts(contacts.filter(c => c.id !== selectedContact.id));
+      await deleteContact(contactId);
+      setContacts(contacts.filter(c => c.id !== contactId));
       setSelectedContact(null);
       setShowDeleteConfirm(false);
+      setContactMenuOpen(null);
+      
+      setSuccessMessage('Contact deleted successfully!');
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Error deleting contact:', error);
-      alert('Failed to delete contact');
+      setSuccessMessage('Failed to delete contact.');
+      setShowSuccessModal(true);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      await deleteMultipleContacts(Array.from(selectedContactIds));
+      setContacts(contacts.filter(c => !selectedContactIds.has(c.id)));
+      setSelectedContactIds(new Set());
+      setShowBulkDeleteConfirm(false);
+      
+      setSuccessMessage(`${selectedContactIds.size} contact(s) deleted successfully!`);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Error deleting contacts:', error);
+      setSuccessMessage('Failed to delete contacts.');
+      setShowSuccessModal(true);
+    }
+  };
+
+  const toggleSelectContact = (contactId: string) => {
+    const newSelected = new Set(selectedContactIds);
+    if (newSelected.has(contactId)) {
+      newSelected.delete(contactId);
+    } else {
+      newSelected.add(contactId);
+    }
+    setSelectedContactIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedContactIds.size === filteredContacts.length) {
+      setSelectedContactIds(new Set());
+    } else {
+      setSelectedContactIds(new Set(filteredContacts.map(c => c.id)));
     }
   };
 
@@ -187,9 +263,33 @@ export default function ContactsManagement() {
       <div className="relative z-10 pt-8 pb-12">
         <div className="max-w-6xl mx-auto px-6 py-6">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-white mb-1">Contacts</h1>
-            <p className="text-gray-400 text-sm">{filteredContacts.length} contacts</p>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-1">Contacts</h1>
+              <p className="text-gray-400 text-sm">{filteredContacts.length} contacts</p>
+            </div>
+            
+            {/* Bulk Actions */}
+            {selectedContactIds.size > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-3"
+              >
+                <span className="text-white text-sm">
+                  {selectedContactIds.size} selected
+                </span>
+                <motion.button
+                  onClick={() => setShowBulkDeleteConfirm(true)}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Selected
+                </motion.button>
+              </motion.div>
+            )}
           </div>
 
           {/* Search Bar - Centered and Smaller */}
@@ -226,6 +326,23 @@ export default function ContactsManagement() {
             </div>
           </div>
 
+          {/* Select All */}
+          {filteredContacts.length > 0 && (
+            <div className="mb-3 flex items-center gap-2">
+              <button
+                onClick={toggleSelectAll}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+              >
+                {selectedContactIds.size === filteredContacts.length ? (
+                  <CheckSquare className="w-4 h-4 text-purple-500" />
+                ) : (
+                  <Square className="w-4 h-4" />
+                )}
+                Select All
+              </button>
+            </div>
+          )}
+
           {/* Contacts List - Compact */}
           <div className="space-y-2">
             {filteredContacts.length === 0 ? (
@@ -238,11 +355,29 @@ export default function ContactsManagement() {
                   key={contact.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  onClick={() => handleContactClick(contact)}
-                  className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-4 hover:border-purple-500 transition-all cursor-pointer"
+                  className="bg-black/40 backdrop-blur-md border border-white/10 rounded-lg p-4 hover:border-purple-500 transition-all relative"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
+                  <div className="flex items-start gap-3">
+                    {/* Checkbox */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelectContact(contact.id);
+                      }}
+                      className="mt-1"
+                    >
+                      {selectedContactIds.has(contact.id) ? (
+                        <CheckSquare className="w-5 h-5 text-purple-500" />
+                      ) : (
+                        <Square className="w-5 h-5 text-gray-400 hover:text-white transition-colors" />
+                      )}
+                    </button>
+
+                    {/* Contact Info */}
+                    <div 
+                      className="flex-1 min-w-0 cursor-pointer"
+                      onClick={() => handleContactClick(contact)}
+                    >
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="text-white font-semibold text-sm">{contact.name}</h3>
                         <span
@@ -277,6 +412,44 @@ export default function ContactsManagement() {
                       </div>
                       <p className="text-gray-300 text-sm line-clamp-1">{contact.message}</p>
                     </div>
+
+                    {/* Ellipsis Menu */}
+                    <div className="relative">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setContactMenuOpen(contactMenuOpen === contact.id ? null : contact.id);
+                        }}
+                        className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4 text-gray-400" />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      <AnimatePresence>
+                        {contactMenuOpen === contact.id && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                            className="absolute right-0 mt-2 w-40 bg-black/90 backdrop-blur-md border border-white/20 rounded-lg shadow-xl z-10"
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedContact(contact);
+                                setShowDeleteConfirm(true);
+                                setContactMenuOpen(null);
+                              }}
+                              className="w-full px-4 py-2 text-left text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-2 rounded-lg"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                   </div>
                 </motion.div>
               ))
@@ -287,7 +460,7 @@ export default function ContactsManagement() {
 
       {/* Contact Detail Modal */}
       <AnimatePresence>
-        {selectedContact && (
+        {selectedContact && !showDeleteConfirm && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -406,9 +579,46 @@ export default function ContactsManagement() {
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Modal */}
+      {/* Success Modal */}
       <AnimatePresence>
-        {showDeleteConfirm && (
+        {showSuccessModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowSuccessModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/60 backdrop-blur-md border border-green-500/30 rounded-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <Check className="w-8 h-8 text-green-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Success!</h3>
+                <p className="text-gray-300 mb-6">{successMessage}</p>
+                <motion.button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Got it!
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Single Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && selectedContact && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -441,12 +651,61 @@ export default function ContactsManagement() {
                     Cancel
                   </motion.button>
                   <motion.button
-                    onClick={handleDelete}
+                    onClick={() => handleDeleteSingle(selectedContact.id)}
                     className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     Delete
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showBulkDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setShowBulkDeleteConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-black/60 backdrop-blur-md border border-red-500/30 rounded-2xl p-6 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <Trash2 className="w-8 h-8 text-red-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-3">Delete {selectedContactIds.size} Contacts?</h3>
+                <p className="text-gray-300 mb-6">
+                  This action cannot be undone. All selected contacts will be permanently deleted.
+                </p>
+                <div className="flex gap-3">
+                  <motion.button
+                    onClick={() => setShowBulkDeleteConfirm(false)}
+                    className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button
+                    onClick={handleBulkDelete}
+                    className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Delete All
                   </motion.button>
                 </div>
               </div>

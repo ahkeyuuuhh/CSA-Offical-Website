@@ -15,6 +15,18 @@ export interface Contact {
   updated_at: string;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  category?: string;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AnalyticsEvent {
   id: string;
   event_type: string;
@@ -343,4 +355,103 @@ export async function getWebsiteVisitsChartData() {
   }
 
   return data;
+}
+
+
+// ============================================
+// PRODUCT MANAGEMENT FUNCTIONS
+// ============================================
+
+// Get all products
+export async function getProducts() {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as Product[];
+}
+
+// Get single product
+export async function getProduct(productId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', productId)
+    .single();
+
+  if (error) throw error;
+  return data as Product;
+}
+
+// Create product
+export async function createProduct(productData: {
+  name: string;
+  description: string;
+  price: number;
+  image_url: string;
+  category?: string;
+  featured?: boolean;
+}) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('products')
+    .insert({
+      ...productData,
+      featured: productData.featured || false,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Product;
+}
+
+// Update product
+export async function updateProduct(productId: string, productData: {
+  name?: string;
+  description?: string;
+  price?: number;
+  image_url?: string;
+  category?: string;
+  featured?: boolean;
+}) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('products')
+    .update({
+      ...productData,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', productId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as Product;
+}
+
+// Delete product
+export async function deleteProduct(productId: string) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', productId);
+
+  if (error) throw error;
+}
+
+// Delete multiple products
+export async function deleteMultipleProducts(productIds: string[]) {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .in('id', productIds);
+
+  if (error) throw error;
 }
