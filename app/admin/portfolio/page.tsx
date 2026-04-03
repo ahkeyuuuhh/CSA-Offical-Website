@@ -259,9 +259,9 @@ export default function PortfolioManagement() {
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen overflow-hidden">
       {/* DarkVeil Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <DarkVeil
           hueShift={270}
           noiseIntensity={0.06}
@@ -273,8 +273,8 @@ export default function PortfolioManagement() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      <div className="relative z-10 py-8">
-        <div className="max-w-7xl mx-auto px-8">
+      <div className="relative z-10 p-8">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
@@ -713,7 +713,7 @@ export default function PortfolioManagement() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/95 backdrop-blur-sm"
+            className="fixed inset-0 z-[80] flex items-center justify-center p-8 bg-black/95 backdrop-blur-sm"
             onClick={() => setShowImagePreview(false)}
           >
             <motion.button
@@ -730,12 +730,12 @@ export default function PortfolioManagement() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.8 }}
               onClick={(e) => e.stopPropagation()}
-              className="max-w-3xl w-full max-h-[70vh] relative"
+              className="relative w-full h-full flex items-center justify-center"
             >
               <img
                 src={previewImage}
                 alt="Preview"
-                className="w-full h-full object-contain rounded-lg"
+                className="max-w-full max-h-full object-contain rounded-lg"
               />
             </motion.div>
           </motion.div>

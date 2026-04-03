@@ -246,9 +246,9 @@ export default function ContactsManagement() {
   ];
 
   return (
-    <div className="relative bg-gray-950 min-h-screen">
+    <div className="relative bg-gray-950 min-h-screen overflow-hidden">
       {/* DarkVeil Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <DarkVeil
           hueShift={260}
           noiseIntensity={0.06}
@@ -260,8 +260,8 @@ export default function ContactsManagement() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      <div className="relative z-10 pt-8 pb-12">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+      <div className="relative z-10 p-8">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
             <div>

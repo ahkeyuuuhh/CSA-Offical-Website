@@ -21,12 +21,19 @@ export default function AdminSidebar() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  // Update CSS variable when collapse state changes
+  // Load collapse state from localStorage on mount
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      '--sidebar-width',
-      isCollapsed ? '80px' : '256px'
-    );
+    const savedState = localStorage.getItem('adminSidebarCollapsed');
+    if (savedState !== null) {
+      setIsCollapsed(savedState === 'true');
+    }
+  }, []);
+
+  // Update CSS variable and save to localStorage when collapse state changes
+  useEffect(() => {
+    const width = isCollapsed ? '80px' : '256px';
+    document.documentElement.style.setProperty('--sidebar-width', width);
+    localStorage.setItem('adminSidebarCollapsed', String(isCollapsed));
   }, [isCollapsed]);
 
   const menuItems = [
@@ -64,25 +71,27 @@ export default function AdminSidebar() {
   return (
     <>
       <motion.div 
-        className="fixed left-4 top-4 bottom-4 bg-black/60 backdrop-blur-md border border-white/10 rounded-3xl shadow-2xl z-50 flex flex-col overflow-hidden"
+        className="fixed left-0 top-0 bottom-0 bg-black/60 backdrop-blur-md border-r border-white/10 shadow-2xl z-50 flex flex-col"
         animate={{ width: isCollapsed ? '80px' : '256px' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {/* Toggle Button - Top Right */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all z-10"
-          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-        >
-          {isCollapsed ? <ChevronRight className="w-5 h-5 text-white" /> : <ChevronLeft className="w-5 h-5 text-white" />}
-        </button>
+        {/* Toggle Button - Above Logo */}
+        <div className="p-4 flex justify-end">
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-all"
+            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          >
+            {isCollapsed ? <ChevronRight className="w-5 h-5 text-white" /> : <ChevronLeft className="w-5 h-5 text-white" />}
+          </button>
+        </div>
 
         {/* Logo */}
-        <div className="p-6 border-b border-white/10">
+        <div className="px-6 pb-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-white/5 p-1">
               <img 
-                src="/assets/light-logo.png" 
+                src="/light-logo.png" 
                 alt="CSA Logo"
                 className="w-full h-full object-contain"
               />

@@ -123,9 +123,9 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="relative bg-gray-950 min-h-screen">
+    <div className="relative bg-gray-950 min-h-screen overflow-hidden">
       {/* DarkVeil Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="fixed inset-0 z-0">
         <DarkVeil
           hueShift={260}
           noiseIntensity={0.06}
@@ -137,8 +137,8 @@ export default function AdminDashboard() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      <div className="relative z-10 pt-8 pb-12">
-        <div className="max-w-7xl mx-auto px-8 py-8">
+      <div className="relative z-10 p-8">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}

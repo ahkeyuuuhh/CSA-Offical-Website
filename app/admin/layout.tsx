@@ -8,12 +8,12 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-gray-950 overflow-x-hidden admin-interface">
       <AdminSidebar />
       <div 
-        className="min-h-screen transition-all duration-300 p-4"
+        className="min-h-screen transition-all duration-300"
         style={{ 
-          marginLeft: 'calc(var(--sidebar-width, 256px) + 16px)' 
+          marginLeft: 'var(--sidebar-width, 256px)' 
         }}
       >
         {children}
